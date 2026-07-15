@@ -93,7 +93,7 @@ function initWhatsAppLinks() {
             
             const carName = this.getAttribute('data-car') || '';
             const price = this.getAttribute('data-price') || '';
-            const phone = this.getAttribute('data-phone') || '+212600123456';
+            const phone = this.getAttribute('data-phone') || '+212606520816';
             
             let message = '';
             

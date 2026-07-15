@@ -284,7 +284,7 @@ function renderCars() {
                              `• Estimated Price: ${finalTotal} DH\n\n` +
                              `Is this vehicle available?`;
                              
-        const whatsappUrl = `https://wa.me/212600123456?text=${encodeURIComponent(whatsAppMsg)}`;
+        const whatsappUrl = `https://wa.me/212606520816?text=${encodeURIComponent(whatsAppMsg)}`;
 
         const card = document.createElement('div');
         card.className = 'car-card';
@@ -389,7 +389,7 @@ function initWhatsAppBubble() {
     const bubble = document.getElementById('whatsapp-bubble');
     bubble.addEventListener('click', () => {
         const message = `Hello Car Airport Morocco! I am visiting your site and would like to ask a general question about car rentals.`;
-        window.open(`https://wa.me/212600123456?text=${encodeURIComponent(message)}`, '_blank');
+        window.open(`https://wa.me/212606520816?text=${encodeURIComponent(message)}`, '_blank');
     });
 }
 
