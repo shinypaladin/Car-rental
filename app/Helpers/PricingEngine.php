@@ -26,7 +26,7 @@ class PricingEngine
         $seasonalPrices = SeasonalPrice::where(function ($query) use ($start, $end) {
             $query->whereBetween('start_date', [$start->toDateString(), $end->toDateString()])
                   ->orWhereBetween('end_date', [$start->toDateString(), $end->toDateString()])
-                  ->or(function ($q2) use ($start, $end) {
+                  ->orWhere(function ($q2) use ($start, $end) {
                       $q2->where('start_date', '<=', $start->toDateString())
                          ->where('end_date', '>=', $end->toDateString());
                   });

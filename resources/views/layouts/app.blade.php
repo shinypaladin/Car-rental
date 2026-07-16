@@ -17,7 +17,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Custom Style Sheet (No plugins, maximum performance) -->
-    <link rel="stylesheet" href="{{ asset('/css/style.css') }}">
+    <link rel="stylesheet" href="/css/style.css">
     
     <!-- JSON-LD Structured Schema Markup for Search Snippets -->
     <script type="application/ld+json">
@@ -143,6 +143,6 @@
     </footer>
 
     <!-- App Script -->
-    <script src="{{ asset('/js/app.js') }}"></script>
+    <script src="/js/app.js"></script>
 </body>
 </html>
