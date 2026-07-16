@@ -18,8 +18,14 @@ class SeasonalPrice extends Model
         'value',
     ];
 
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date'   => 'date',
+        'value'      => 'float',
+    ];
+
     /**
-     * Relationship with car.
+     * Relationship: optionally belongs to a specific car (null = applies to all).
      */
     public function car()
     {

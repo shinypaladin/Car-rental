@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Booking extends Model
 {
@@ -30,7 +31,7 @@ class Booking extends Model
     ];
 
     /**
-     * Relationship with car.
+     * Relationship: belongs to a car.
      */
     public function car()
     {
@@ -38,12 +39,12 @@ class Booking extends Model
     }
 
     /**
-     * Generate unique booking reference.
+     * Generate a unique booking reference.
      */
-    public static function generateReference()
+    public static function generateReference(): string
     {
         do {
-            $ref = 'CAM-' . strtoupper(bin2hex(random_bytes(4)));
+            $ref = 'CAM-' . strtoupper(Str::random(6));
         } while (self::where('booking_reference', $ref)->exists());
 
         return $ref;

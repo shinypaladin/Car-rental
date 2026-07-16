@@ -24,7 +24,7 @@ class SetLocale
             
             // Redirect /about to /en/about or /fr/about
             $path = $request->path() === '/' ? '' : '/' . $request->path();
-            return redirect('/' . $detected . $path);
+            return response('', 302)->header('Location', '/' . $detected . $path);
         }
 
         return $next($request);
@@ -35,7 +35,7 @@ class SetLocale
      */
     public static function detectBrowserLocale(Request $request): string
     {
-        $languages = $request->languages();
+        $languages = $request->getLanguages();
         
         foreach ($languages as $lang) {
             if (str_starts_with($lang, 'fr')) {

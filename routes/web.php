@@ -16,7 +16,7 @@ use Illuminate\Http\Request;
 // Root route: Auto-detects browser locale and redirects
 Route::get('/', function (Request $request) {
     $locale = SetLocale::detectBrowserLocale($request);
-    return redirect("/{$locale}");
+    return response('', 302)->header('Location', '/' . $locale);
 });
 
 // Localized Route Group (English and French)
@@ -48,25 +48,25 @@ Route::group([
         // Bookings status updates
         Route::post('/bookings/{id}/status', [AdminController::class, 'updateBookingStatus'])->name('admin.booking.status');
     });
-});
 
-// REDUNDANCY: Easy Web DB installer for Bluehost shared hosting FTP uploads
-Route::get('/install-db', function () {
-    try {
-        // Run migrations
-        Artisan::call('migrate:fresh', ['--force' => true]);
-        // Run seeders
-        Artisan::call('db:seed', ['--force' => true]);
-        
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Database successfully migrated and seeded with mock cars!',
-            'output' => Artisan::output()
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => $e->getMessage()
-        ], 500);
-    }
+    // Web DB installer (accessible at /en/install-db or /fr/install-db)
+    Route::get('/install-db', function () {
+        try {
+            // Run migrations
+            Artisan::call('migrate:fresh', ['--force' => true]);
+            // Run seeders
+            Artisan::call('db:seed', ['--force' => true]);
+            
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Database successfully migrated and seeded with mock cars!',
+                'output' => Artisan::output()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    });
 });
