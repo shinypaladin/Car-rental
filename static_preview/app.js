@@ -284,7 +284,7 @@ function renderCars() {
                              `• Estimated Price: ${finalTotal} DH\n\n` +
                              `Is this vehicle available?`;
                              
-        const whatsappUrl = `https://wa.me/212606520816?text=${encodeURIComponent(whatsAppMsg)}`;
+        const whatsappUrl = `https://wa.me/212600988632?text=${encodeURIComponent(whatsAppMsg)}`;
 
         const card = document.createElement('div');
         card.className = 'car-card';
