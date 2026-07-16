@@ -224,7 +224,7 @@
     <header>
         <h1>Car Airport Morocco - Fleet Manager</h1>
         <div class="header-links">
-            <a href="{{ route('home', ['locale' => $locale]) }}" target="_blank">View Main Site</a>
+            <a href="/{{ $locale }}" target="_blank">View Main Site</a>
         </div>
     </header>
 
@@ -288,7 +288,7 @@
                             </td>
                             <td>{{ $car->base_price }} DH</td>
                             <td>
-                                <form action="{{ route('admin.car.delete', ['locale' => $locale, 'id' => $car->id]) }}" method="POST" onsubmit="return confirm('Remove vehicle from database?')" style="display:inline;">
+                                <form action="/{{ $locale }}/admin/cars/{{ $car->id }}" method="POST" onsubmit="return confirm('Remove vehicle from database?')" style="display:inline;">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" style="color:red; background:none; border:none; cursor:pointer;">Delete</button>
@@ -302,7 +302,7 @@
 
             <div class="panel">
                 <h2>Add Vehicle to Fleet</h2>
-                <form action="{{ route('admin.car.store', ['locale' => $locale]) }}" method="POST">
+                <form action="/{{ $locale }}/admin/cars" method="POST">
                     @csrf
                     <div class="form-group">
                         <label>Brand Name</label>
@@ -401,7 +401,7 @@
                                 {{ $rule->adjustment_type == 'percentage' ? ($rule->value > 1.0 ? '+' . (($rule->value - 1.0)*100) . '%' : ($rule->value*100) . '%') : ($rule->value . ' DH') }}
                             </td>
                             <td>
-                                <form action="{{ route('admin.pricing.delete', ['locale' => $locale, 'id' => $rule->id]) }}" method="POST" onsubmit="return confirm('Remove this rule?')" style="display:inline;">
+                                <form action="/{{ $locale }}/admin/pricing/{{ $rule->id }}" method="POST" onsubmit="return confirm('Remove this rule?')" style="display:inline;">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" style="color:red; background:none; border:none; cursor:pointer;">Delete</button>
@@ -415,7 +415,7 @@
 
             <div class="panel">
                 <h2>Add Seasonal Price Rule</h2>
-                <form action="{{ route('admin.pricing.store', ['locale' => $locale]) }}" method="POST">
+                <form action="/{{ $locale }}/admin/pricing" method="POST">
                     @csrf
                     <div class="form-group">
                         <label>Rule Name</label>
@@ -502,7 +502,7 @@
                             </span>
                         </td>
                         <td>
-                            <form action="{{ route('admin.booking.status', ['locale' => $locale, 'id' => $booking->id]) }}" method="POST" style="display:flex; gap:0.25rem;">
+                            <form action="/{{ $locale }}/admin/bookings/{{ $booking->id }}/status" method="POST" style="display:flex; gap:0.25rem;">
                                 @csrf
                                 <select name="status" style="padding: 0.2rem; font-size:0.75rem;">
                                     <option value="pending" {{ $booking->status == 'pending' ? 'selected' : '' }}>Pending</option>
