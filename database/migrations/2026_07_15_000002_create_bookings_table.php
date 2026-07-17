@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('booking_reference')->unique();
             $table->foreignId('car_id')->constrained()->onDelete('cascade');
             $table->string('customer_name');
-            $table->string('customer_email');
+            $table->string('customer_email')->nullable();
             $table->string('customer_phone');
             $table->string('pickup_location');
             $table->string('return_location');
