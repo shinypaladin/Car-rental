@@ -43,7 +43,7 @@ HTML;
             "image" => asset('/images/logo.png'),
             "@id" => url('/'),
             "url" => url('/'),
-            "telephone" => "+2126000988632",
+            "telephone" => "+212600988632",
             "priceRange" => "$$ - $$$",
             "address" => [
                 "@type" => "PostalAddress",

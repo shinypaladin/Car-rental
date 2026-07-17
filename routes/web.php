@@ -55,6 +55,10 @@ Route::group([
         
         // Manual Bookings
         Route::post('/bookings/manual', [AdminController::class, 'storeManualBooking'])->name('admin.booking.manual');
+
+        // Expense Management
+        Route::post('/expenses', [AdminController::class, 'storeExpense'])->name('admin.expense.store');
+        Route::delete('/expenses/{id}', [AdminController::class, 'deleteExpense'])->name('admin.expense.delete');
     });
 
     // Web DB installer (accessible at /en/install-db or /fr/install-db)

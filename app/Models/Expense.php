@@ -5,20 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PageVisit extends Model
+class Expense extends Model
 {
     use HasFactory;
 
-    public $timestamps = false;
-
     protected $fillable = [
-        'ip_address',
-        'session_id',
-        'country',
-        'visited_at',
+        'description',
+        'category',
+        'amount',
+        'spent_at',
     ];
 
     protected $casts = [
-        'visited_at' => 'datetime',
+        'spent_at' => 'date',
+        'amount' => 'float',
     ];
 }

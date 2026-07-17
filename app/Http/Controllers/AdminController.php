@@ -24,14 +24,36 @@ class AdminController extends Controller
         $visits7d = \App\Models\PageVisit::where('visited_at', '>=', now()->subDays(7))->count();
         $visits30d = \App\Models\PageVisit::where('visited_at', '>=', now()->subDays(30))->count();
 
-        // Monthly expenses sum for the entire active fleet (expenses per car model * quantity of models)
-        $totalMonthlyExpenses = $cars->sum(function($car) {
-            return ($car->loan_cost + $car->insurance_cost + $car->maintenance_cost + $car->fuel_cost + $car->other_cost) * $car->quantity;
+        // Top 5 visitor countries
+        $topCountries = \App\Models\PageVisit::select('country', \DB::raw('count(*) as count'))
+            ->groupBy('country')
+            ->orderBy('count', 'desc')
+            ->limit(5)
+            ->get();
+
+        // All recent visits for full history modal log
+        $allVisits = \App\Models\PageVisit::orderBy('visited_at', 'desc')->limit(200)->get();
+
+        // Custom Expenses
+        $expenses = \App\Models\Expense::orderBy('spent_at', 'desc')->get();
+
+        // Automated Monthly Fixed Expenses (fleet vehicle loan + insurance per vehicle * quantity)
+        $automatedExpensesSum = $cars->sum(function($car) {
+            return ($car->loan_cost + $car->insurance_cost) * $car->quantity;
         });
+
+        // Current Month manual expenses sum
+        $currentMonthManualExpensesSum = \App\Models\Expense::whereMonth('spent_at', now()->month)
+            ->whereYear('spent_at', now()->year)
+            ->sum('amount');
+
+        // Total Combined Monthly Operating Expenses
+        $totalMonthlyExpenses = $automatedExpensesSum + $currentMonthManualExpensesSum;
 
         return view('admin.dashboard', compact(
             'cars', 'bookings', 'seasonalPrices', 'locale', 
-            'visits24h', 'visits7d', 'visits30d', 'totalMonthlyExpenses'
+            'visits24h', 'visits7d', 'visits30d', 'totalMonthlyExpenses',
+            'topCountries', 'allVisits', 'expenses', 'automatedExpensesSum'
         ));
     }
 
@@ -190,6 +212,39 @@ class AdminController extends Controller
         ]);
 
         return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Manual booking added successfully.');
+    }
+
+    /**
+     * Store a manual expense entry.
+     */
+    public function storeExpense(Request $request, $locale = 'en')
+    {
+        $request->validate([
+            'description' => 'required|string',
+            'category' => 'required|string|in:loan,insurance,maintenance,fuel,other',
+            'amount' => 'required|numeric',
+            'spent_at' => 'required|date',
+        ]);
+
+        \App\Models\Expense::create([
+            'description' => $request->description,
+            'category' => $request->category,
+            'amount' => $request->amount,
+            'spent_at' => Carbon::parse($request->spent_at),
+        ]);
+
+        return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Expense logged successfully.');
+    }
+
+    /**
+     * Delete an expense entry.
+     */
+    public function deleteExpense($locale = 'en', $id)
+    {
+        $expense = \App\Models\Expense::findOrFail($id);
+        $expense->delete();
+
+        return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Expense deleted successfully.');
     }
 
     /**

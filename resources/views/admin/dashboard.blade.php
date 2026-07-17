@@ -317,7 +317,7 @@
             </div>
 
             <div class="stat-card" style="grid-column: span 2;">
-                <h3>Unique Visitors (24h / 7d / 30d)</h3>
+                <h3>Unique Visitors (24h / 7d / 30d) <a href="#" onclick="openVisitsModal()" style="font-size: 0.8rem; text-decoration: underline; margin-left: 0.75rem; color: var(--accent-gold); font-weight: 600;">View Countries & History</a></h3>
                 <div class="value" style="font-size: 1.5rem; padding-top: 0.5rem;">
                     <strong>{{ $visits24h }}</strong> <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">last 24h</span>
                     &nbsp;|&nbsp; <strong>{{ $visits7d }}</strong> <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 500;">7 days</span>
@@ -326,8 +326,17 @@
             </div>
         </div>
 
-        <!-- Section 1: Fleet Management & Add Car -->
-        <div class="admin-grid">
+        <!-- Navigation Tabs -->
+        <div class="tabs-navigation" style="display: flex; gap: 1rem; border-bottom: 2px solid var(--border-color); margin-bottom: 2rem;">
+            <button class="tab-btn active" onclick="switchTab('fleet-tab')" id="btn-fleet-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--primary-dark); border-bottom: 3px solid var(--accent-gold); font-size: 1rem;">🏠 Fleet & Pricing</button>
+            <button class="tab-btn" onclick="switchTab('expenses-tab')" id="btn-expenses-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">💸 Expense Follow-Up</button>
+            <button class="tab-btn" onclick="switchTab('bookings-tab')" id="btn-bookings-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">📅 Reservation Log</button>
+        </div>
+
+        <!-- tab 1: Fleet & Pricing -->
+        <div id="fleet-tab" class="tab-content">
+            <!-- Section 1: Fleet Management & Add Car -->
+            <div class="admin-grid">
             <div class="panel">
                 <h2>Active Fleet Vehicles</h2>
                 
@@ -561,9 +570,147 @@
                 </form>
             </div>
         </div>
+        </div> <!-- End of fleet-tab -->
 
-        <!-- Section 3: Booking Log -->
-        <div class="panel" style="margin-bottom: 5rem;">
+        <!-- tab 2: Expense Follow-Up -->
+        <div id="expenses-tab" class="tab-content" style="display: none;">
+            <div class="admin-grid">
+                
+                <!-- Left: Automated Fixed Fleet Expenses -->
+                <div class="panel">
+                    <h2>Fleet Fixed Expenses (Automated)</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">These expenses (loans & insurance) are calculated automatically based on your active fleet configuration.</p>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Car Model</th>
+                                <th>Qty</th>
+                                <th>Monthly Loan</th>
+                                <th>Monthly Insurance</th>
+                                <th>Subtotal (Fixed)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @php $totFixed = 0; @endphp
+                            @foreach($cars as $car)
+                            @php 
+                                $carFixed = ($car->loan_cost + $car->insurance_cost) * $car->quantity;
+                                $totFixed += $carFixed;
+                            @endphp
+                            <tr>
+                                <td><strong>{{ $car->brand }} {{ $car->model }}</strong></td>
+                                <td>{{ $car->quantity }}</td>
+                                <td>{{ number_format($car->loan_cost) }} DH <span style="font-size: 0.75rem; color: var(--text-muted);">/car</span></td>
+                                <td>{{ number_format($car->insurance_cost) }} DH <span style="font-size: 0.75rem; color: var(--text-muted);">/car</span></td>
+                                <td><strong>{{ number_format($carFixed) }} DH</strong></td>
+                            </tr>
+                            @endforeach
+                            <tr style="background: var(--bg-light); font-weight: 700; border-top: 2px solid var(--border-color);">
+                                <td colspan="4" style="text-align: right;">Total Automated Fixed Cost:</td>
+                                <td style="color: #ef4444; font-size: 1.1rem;">{{ number_format($totFixed) }} DH</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Right: Log Custom/Variable Expense -->
+                <div class="panel">
+                    <h2>Log Custom/Variable Expense</h2>
+                    <form action="/{{ $locale }}/admin/expenses" method="POST">
+                        @csrf
+                        <div class="form-group">
+                            <label>Expense Category</label>
+                            <select name="category" required>
+                                <option value="maintenance">Maintenance & Service</option>
+                                <option value="fuel">Fuel & Gas</option>
+                                <option value="loan">Extra Loan Payment</option>
+                                <option value="insurance">Extra Insurance Fee</option>
+                                <option value="other" selected>Other (Taxes, Cleaning, Parts...)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <input type="text" name="description" placeholder="e.g. Brake pads replacement Dacia" required>
+                        </div>
+                        <div style="display: flex; gap: 1rem;">
+                            <div class="form-group" style="flex: 1;">
+                                <label>Amount (DH)</label>
+                                <input type="number" step="0.01" name="amount" placeholder="e.g. 450" required>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label>Date Spent</label>
+                                <input type="date" name="spent_at" value="{{ date('Y-m-d') }}" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-submit">Log Expense</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Bottom: Custom/Variable Expenses Log -->
+            <div class="panel" style="margin-top: 2rem;">
+                <h2>Custom/Variable Expenses Log</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th>Amount</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @php $totCustomThisMonth = 0; @endphp
+                        @foreach($expenses as $exp)
+                        @php 
+                            if ($exp->spent_at->format('Y-m') === date('Y-m')) {
+                                $totCustomThisMonth += $exp->amount;
+                            }
+                        @endphp
+                        <tr>
+                            <td>{{ $exp->spent_at->format('Y-m-d') }}</td>
+                            <td><strong>{{ $exp->description }}</strong></td>
+                            <td>
+                                <span class="badge" style="background: #f1f5f9; color: var(--text-dark); text-transform: uppercase;">
+                                    {{ $exp->category }}
+                                </span>
+                            </td>
+                            <td><strong style="color: #ef4444;">{{ number_format($exp->amount) }} DH</strong></td>
+                            <td>
+                                <form action="/{{ $locale }}/admin/expenses/{{ $exp->id }}" method="POST" onsubmit="return confirm('Delete this expense entry?')" style="display:inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" style="color:red; background:none; border:none; cursor:pointer; font-weight:600;">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+
+                <!-- Summary Panel -->
+                <div style="margin-top: 2.5rem; background: var(--bg-light); border-radius: 12px; padding: 1.5rem 2rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color);">
+                    <div>
+                        <h3 style="font-size: 1.1rem; color: var(--primary-dark);">Budget Breakdown (Current Month)</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+                            Fixed: <strong>{{ number_format($totFixed) }} DH</strong> | 
+                            Variable: <strong>{{ number_format($totCustomThisMonth) }} DH</strong>
+                        </p>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Combined Operating Budget</span>
+                        <div style="font-size: 2rem; font-weight: 800; color: #ef4444; line-height: 1;">{{ number_format($totFixed + $totCustomThisMonth) }} DH</div>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- End of expenses-tab -->
+
+        <!-- tab 3: Reservation Log -->
+        <div id="bookings-tab" class="tab-content" style="display: none;">
+            <!-- Section 3: Booking Log -->
+            <div class="panel" style="margin-bottom: 5rem;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1.5rem;">
                 <h2>Recent Reservation Log</h2>
                 <button onclick="openManualBookingModal()" style="background:var(--primary-dark); color:white; border:none; padding:0.6rem 1.2rem; border-radius:6px; font-weight:700; cursor:pointer;">+ Add Manual Booking</button>
@@ -620,6 +767,7 @@
                 </tbody>
             </table>
         </div>
+        </div> <!-- End of bookings-tab -->
 
     </div>
 
@@ -741,7 +889,7 @@
                 </div>
                 <div class="form-group">
                     <label>Customer Phone (WhatsApp preferred)</label>
-                    <input type="tel" name="customer_phone" required placeholder="e.g. +2126000988632">
+                    <input type="tel" name="customer_phone" required placeholder="e.g. +212600988632">
                 </div>
                 <div style="display: flex; gap: 1rem;">
                     <div class="form-group" style="flex: 1;">
@@ -830,19 +978,90 @@
         function closeManualBookingModal() {
             document.getElementById('manualBookingModal').style.display = 'none';
         }
+
+        function openVisitsModal() {
+            document.getElementById('visitsModal').style.display = 'flex';
+        }
+
+        function closeVisitsModal() {
+            document.getElementById('visitsModal').style.display = 'none';
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.borderBottom = '3px solid transparent';
+                btn.style.opacity = '0.75';
+            });
+            document.getElementById(tabId).style.display = 'block';
+            
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.add('active');
+            activeBtn.style.borderBottom = '3px solid var(--accent-gold)';
+            activeBtn.style.opacity = '1';
+        }
         
         // Close modals on background click
         window.onclick = function(event) {
             const editModal = document.getElementById('editCarModal');
             const manualModal = document.getElementById('manualBookingModal');
+            const visitsModal = document.getElementById('visitsModal');
             if (event.target == editModal) {
                 closeEditModal();
             }
             if (event.target == manualModal) {
                 closeManualBookingModal();
             }
+            if (event.target == visitsModal) {
+                closeVisitsModal();
+            }
         }
     </script>
+
+    <!-- Visitor Logs Modal -->
+    <div id="visitsModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <button onclick="closeVisitsModal()" class="modal-close">&times;</button>
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary-dark); font-family: 'Outfit', sans-serif;">Visitor Analytics</h2>
+            
+            <div style="display: flex; gap: 2rem; margin-bottom: 2rem;">
+                <div style="flex: 1; background: var(--bg-light); padding: 1.2rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <h3 style="font-size: 0.95rem; margin-bottom: 1rem; color: var(--primary-dark);">Top 5 Countries</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        @foreach($topCountries as $tc)
+                        <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                            <td style="padding: 0.5rem 0; font-size: 0.85rem;"><strong>{{ $tc->country }}</strong></td>
+                            <td style="padding: 0.5rem 0; font-size: 0.85rem; text-align: right; color: var(--accent-gold); font-weight:700;">{{ $tc->count }} visits</td>
+                        </tr>
+                        @endforeach
+                    </table>
+                </div>
+            </div>
+
+            <h3 style="font-size: 1rem; margin-bottom: 0.75rem; color: var(--primary-dark);">Recent Visit Log (Last 200)</h3>
+            <div style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+                    <thead style="position: sticky; top: 0; background: var(--primary-dark); color: white;">
+                        <tr>
+                            <th style="padding: 0.5rem; text-align: left;">IP Address</th>
+                            <th style="padding: 0.5rem; text-align: left;">Country</th>
+                            <th style="padding: 0.5rem; text-align: left;">Visited At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($allVisits as $visit)
+                        <tr style="border-bottom: 1px solid rgba(0,0,0,0.05); background: white;">
+                            <td style="padding: 0.4rem 0.5rem;"><code>{{ $visit->ip_address }}</code></td>
+                            <td style="padding: 0.4rem 0.5rem;">{{ $visit->country }}</td>
+                            <td style="padding: 0.4rem 0.5rem; color: var(--text-muted);">{{ $visit->visited_at->format('Y-m-d H:i:s') }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>

@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('page_visits', function (Blueprint $table) {
+        Schema::create('expenses', function (Blueprint $table) {
             $table->id();
-            $table->string('ip_address', 45)->nullable();
-            $table->string('session_id')->nullable();
-            $table->string('country')->default('Unknown');
-            $table->timestamp('visited_at')->useCurrent();
+            $table->string('description');
+            $table->string('category'); // loan, insurance, maintenance, fuel, other
+            $table->decimal('amount', 10, 2);
+            $table->date('spent_at');
+            $table->timestamps();
         });
     }
 
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('page_visits');
+        Schema::dropIfExists('expenses');
     }
 };
