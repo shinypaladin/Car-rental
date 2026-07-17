@@ -32,8 +32,13 @@ Route::group([
     // Booking Form Submission
     Route::post('/book', [AdminController::class, 'storeBooking'])->name('booking.store');
 
+    // Admin Auth routes
+    Route::get('/admin/login', [AdminController::class, 'showLogin'])->name('admin.login');
+    Route::post('/admin/login', [AdminController::class, 'login'])->name('admin.login.submit');
+    Route::post('/admin/logout', [AdminController::class, 'logout'])->name('admin.logout');
+
     // Admin Dashboard Routes
-    Route::prefix('admin')->group(function () {
+    Route::prefix('admin')->middleware(['admin.auth'])->group(function () {
         Route::get('/', [AdminController::class, 'index'])->name('admin.dashboard');
         
         // Fleet Manage
@@ -47,6 +52,9 @@ Route::group([
         
         // Bookings status updates
         Route::post('/bookings/{id}/status', [AdminController::class, 'updateBookingStatus'])->name('admin.booking.status');
+        
+        // Manual Bookings
+        Route::post('/bookings/manual', [AdminController::class, 'storeManualBooking'])->name('admin.booking.manual');
     });
 
     // Web DB installer (accessible at /en/install-db or /fr/install-db)

@@ -21,6 +21,11 @@ class Car extends Model
         'base_price',
         'image_path',
         'video_path',
+        'loan_cost',
+        'insurance_cost',
+        'maintenance_cost',
+        'fuel_cost',
+        'other_cost',
     ];
 
     /**

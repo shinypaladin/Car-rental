@@ -19,7 +19,58 @@ class AdminController extends Controller
         $bookings = Booking::with('car')->orderBy('created_at', 'desc')->get();
         $seasonalPrices = SeasonalPrice::with('car')->orderBy('start_date', 'asc')->get();
 
-        return view('admin.dashboard', compact('cars', 'bookings', 'seasonalPrices', 'locale'));
+        // Visitor stats calculations
+        $visits24h = \App\Models\PageVisit::where('visited_at', '>=', now()->subDay())->count();
+        $visits7d = \App\Models\PageVisit::where('visited_at', '>=', now()->subDays(7))->count();
+        $visits30d = \App\Models\PageVisit::where('visited_at', '>=', now()->subDays(30))->count();
+
+        // Monthly expenses sum for the entire active fleet (expenses per car model * quantity of models)
+        $totalMonthlyExpenses = $cars->sum(function($car) {
+            return ($car->loan_cost + $car->insurance_cost + $car->maintenance_cost + $car->fuel_cost + $car->other_cost) * $car->quantity;
+        });
+
+        return view('admin.dashboard', compact(
+            'cars', 'bookings', 'seasonalPrices', 'locale', 
+            'visits24h', 'visits7d', 'visits30d', 'totalMonthlyExpenses'
+        ));
+    }
+
+    /**
+     * Show admin login page.
+     */
+    public function showLogin($locale = 'en')
+    {
+        if (session('admin_logged_in')) {
+            return redirect()->route('admin.dashboard', ['locale' => $locale]);
+        }
+        return view('admin.login', compact('locale'));
+    }
+
+    /**
+     * Handle login post request.
+     */
+    public function login(Request $request, $locale = 'en')
+    {
+        $request->validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        if ($request->username === 'admin' && $request->password === '123456') {
+            session(['admin_logged_in' => true]);
+            return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Logged in successfully.');
+        }
+
+        return back()->with('error', 'Invalid username or password.');
+    }
+
+    /**
+     * Handle logout.
+     */
+    public function logout(Request $request, $locale = 'en')
+    {
+        session()->forget('admin_logged_in');
+        return redirect()->route('admin.login', ['locale' => $locale])->with('success', 'Logged out successfully.');
     }
 
     /**
@@ -35,6 +86,11 @@ class AdminController extends Controller
             'transmission' => 'required|string',
             'quantity' => 'required|integer',
             'base_price' => 'required|numeric',
+            'loan_cost' => 'nullable|numeric',
+            'insurance_cost' => 'nullable|numeric',
+            'maintenance_cost' => 'nullable|numeric',
+            'fuel_cost' => 'nullable|numeric',
+            'other_cost' => 'nullable|numeric',
         ]);
 
         Car::create([
@@ -49,6 +105,11 @@ class AdminController extends Controller
             'base_price' => $request->base_price,
             'image_path' => $request->image_path ?: '/images/default.jpg',
             'video_path' => $request->video_path ?: null,
+            'loan_cost' => $request->loan_cost ?: 0,
+            'insurance_cost' => $request->insurance_cost ?: 0,
+            'maintenance_cost' => $request->maintenance_cost ?: 0,
+            'fuel_cost' => $request->fuel_cost ?: 0,
+            'other_cost' => $request->other_cost ?: 0,
         ]);
 
         return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Car added successfully.');
@@ -73,6 +134,11 @@ class AdminController extends Controller
             'base_price' => $request->base_price,
             'image_path' => $request->image_path ?: $car->image_path,
             'video_path' => $request->video_path ?: $car->video_path,
+            'loan_cost' => $request->loan_cost ?: 0,
+            'insurance_cost' => $request->insurance_cost ?: 0,
+            'maintenance_cost' => $request->maintenance_cost ?: 0,
+            'fuel_cost' => $request->fuel_cost ?: 0,
+            'other_cost' => $request->other_cost ?: 0,
         ]);
 
         return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Car updated successfully.');
@@ -87,6 +153,43 @@ class AdminController extends Controller
         $car->delete();
 
         return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Car removed successfully.');
+    }
+
+    /**
+     * Create a manual booking from the admin panel.
+     */
+    public function storeManualBooking(Request $request, $locale = 'en')
+    {
+        $request->validate([
+            'car_id' => 'required|exists:cars,id',
+            'customer_name' => 'required|string',
+            'customer_email' => 'nullable|email',
+            'customer_phone' => 'required|string',
+            'pickup_location' => 'required|string',
+            'return_location' => 'required|string',
+            'pickup_datetime' => 'required|date',
+            'return_datetime' => 'required|date|after:pickup_datetime',
+            'total_price' => 'required|numeric',
+            'source' => 'required|string|in:website,whatsapp,ota',
+            'status' => 'required|string|in:pending,confirmed,cancelled',
+        ]);
+
+        Booking::create([
+            'booking_reference' => Booking::generateReference(),
+            'car_id' => $request->car_id,
+            'customer_name' => $request->customer_name,
+            'customer_email' => $request->customer_email,
+            'customer_phone' => $request->customer_phone,
+            'pickup_location' => $request->pickup_location,
+            'return_location' => $request->return_location,
+            'pickup_datetime' => Carbon::parse($request->pickup_datetime),
+            'return_datetime' => Carbon::parse($request->return_datetime),
+            'total_price' => $request->total_price,
+            'status' => $request->status,
+            'source' => $request->source,
+        ]);
+
+        return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Manual booking added successfully.');
     }
 
     /**

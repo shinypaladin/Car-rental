@@ -24,6 +24,11 @@ return new class extends Migration
             $table->decimal('base_price', 8, 2); // Daily rate in DH
             $table->string('image_path')->nullable(); // static photo
             $table->string('video_path')->nullable(); // hover looping video
+            $table->decimal('loan_cost', 8, 2)->default(0.00);
+            $table->decimal('insurance_cost', 8, 2)->default(0.00);
+            $table->decimal('maintenance_cost', 8, 2)->default(0.00);
+            $table->decimal('fuel_cost', 8, 2)->default(0.00);
+            $table->decimal('other_cost', 8, 2)->default(0.00);
             $table->timestamps();
         });
     }
