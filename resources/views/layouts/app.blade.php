@@ -12,6 +12,20 @@
     <!-- Dynamic hreflang Alternate Tags -->
     {!! \App\Helpers\SeoHelper::getAlternateLinks() !!}
     
+    <!-- OpenGraph Social Media Meta Tags -->
+    <meta property="og:title" content="@yield('title', 'Car Airport Morocco - Rent a Car at Marrakech Airport')" />
+    <meta property="og:description" content="@yield('meta_description', 'Rent a car at Marrakech Airport from 350 DH per day. Free airport delivery, full insurance, unlimited mileage, and direct WhatsApp booking.')" />
+    <meta property="og:image" content="{{ asset('/images/logo.png') }}" />
+    <meta property="og:url" content="{{ url()->current() }}" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Car Airport Morocco" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="@yield('title', 'Car Airport Morocco - Rent a Car at Marrakech Airport')" />
+    <meta name="twitter:description" content="@yield('meta_description', 'Rent a car at Marrakech Airport from 350 DH per day. Free airport delivery, full insurance, unlimited mileage, and direct WhatsApp booking.')" />
+    <meta name="twitter:image" content="{{ asset('/images/logo.png') }}" />
+    
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,7 +35,7 @@
     <style>
 :root{--primary-blue:#0f1d36;--primary-blue-light:#1b2f52;--accent-gold:#c5a059;--accent-gold-hover:#b08c48;--text-dark:#222222;--text-muted:#666666;--text-white:#ffffff;--bg-light:#f8fafc;--bg-white:#ffffff;--border-color:#e2e8f0;--shadow-sm:0 2px 4px rgba(0,0,0,0.05);--shadow-md:0 4px 12px rgba(0,0,0,0.08);--shadow-lg:0 10px 25px rgba(15,29,54,0.1);--font-heading:'Outfit',sans-serif;--font-body:'Inter',sans-serif}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:var(--font-body);background-color:var(--bg-light);color:var(--text-dark);line-height:1.6;overflow-x:hidden}
+html,body{font-family:var(--font-body);background-color:var(--bg-light);color:var(--text-dark);line-height:1.6;overflow-x:hidden;width:100%;position:relative}
 header{background-color:rgba(15,29,54,0.95);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,0.1);position:sticky;top:0;z-index:1000}
 .header-container{max-width:1200px;margin:0 auto;padding:1rem 1.5rem;display:flex;justify-content:space-between;align-items:center}
 .logo img{height:45px;object-fit:contain}
@@ -122,8 +136,62 @@ footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem
 .footer-bottom{text-align:center;font-size:0.8rem;color:rgba(255,255,255,0.4);border-top:1px solid rgba(255,255,255,0.05);padding-top:2rem;max-width:1200px;margin:0 auto}
 .floating-whatsapp{position:fixed;bottom:30px;right:30px;width:60px;height:60px;background-color:#25d366;border-radius:50%;display:flex;justify-content:center;align-items:center;box-shadow:0 4px 10px rgba(0,0,0,0.3);z-index:999;cursor:pointer;transition:transform 0.3s;animation:pulse 2s infinite}
 .floating-whatsapp:hover{transform:scale(1.1)}
-@media(max-width:991px){.search-grid{grid-template-columns:1fr 1fr}.footer-grid{grid-template-columns:1fr 1fr}.promo-testimonials{grid-template-columns:1fr}.hero h1{font-size:2.2rem}}
-@media(max-width:767px){.header-container{flex-direction:column;gap:1rem}nav ul{flex-wrap:wrap;justify-content:center;gap:1rem}.search-grid{grid-template-columns:1fr}.hero{padding:3rem 1.5rem 8rem}}
+@media(max-width:991px){
+    .search-grid{grid-template-columns:1fr 1fr}
+    .footer-grid{grid-template-columns:1fr 1fr}
+    .promo-testimonials{grid-template-columns:1fr}
+    .hero h1{font-size:2.2rem}
+}
+@media(max-width:767px){
+    .header-container{flex-direction:row;justify-content:space-between;padding:0.6rem 1rem;gap:0.5rem}
+    nav{display:none}
+    .header-actions{width:auto;justify-content:flex-end;gap:0.4rem;flex-wrap:nowrap}
+    .lang-selector{padding:0.3rem 0.5rem;font-size:0.75rem}
+    .booking-btn{padding:0.4rem 0.8rem;font-size:0.75rem}
+    .logo img{height:32px}
+    .search-grid{grid-template-columns:1fr}
+    .hero{padding:4rem 1rem 6rem;min-height:auto}
+    .hero h1{font-size:1.9rem;line-height:1.3}
+    .hero p{font-size:1rem;margin-bottom:1.5rem}
+    .search-widget-container{margin:-3rem auto 3rem;padding:0 1rem}
+    .search-widget{padding:1.5rem 1.25rem}
+    .section-container{padding:0 1rem;margin-bottom:3.5rem}
+    .section-header{flex-direction:row;justify-content:space-between;align-items:center;margin-bottom:1.25rem}
+    .section-header h2{font-size:1.4rem}
+    .testimonials{padding:1.5rem 1.25rem}
+    .promo-banner{padding:2.5rem 1.5rem;min-height:300px}
+    .footer-grid{grid-template-columns:1fr;gap:2rem}
+    .footer-top{flex-direction:column;align-items:stretch;text-align:center}
+    .footer-newsletter{max-width:100%}
+    .floating-whatsapp{width:50px;height:50px;bottom:20px;right:20px}
+    .floating-whatsapp svg{width:26px;height:26px}
+    
+    .filter-toolbar{overflow-x:auto;white-space:nowrap;padding-bottom:8px;-webkit-overflow-scrolling:touch;width:100%}
+    .filter-toolbar::-webkit-scrollbar{height:4px}
+    .filter-toolbar::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}
+    .filter-toolbar .filter-group{flex-wrap:nowrap}
+    .filter-toolbar .filter-divider{display:none}
+}
+@media(max-width:576px){
+    .cars-grid{grid-template-columns:1fr 1fr;gap:0.75rem}
+    .car-card{border-radius:8px}
+    .car-image-container{height:110px}
+    .car-details{padding:0.75rem}
+    .car-title-row h3{font-size:0.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .car-subtitle{font-size:0.7rem;margin-bottom:0.5rem}
+    .car-specs{display:none} /* Hide specs on mobile list view to keep it compact */
+    .car-price-row{flex-direction:column;align-items:stretch;gap:0.5rem;padding-top:0.5rem}
+    .price-box{flex-direction:row;justify-content:space-between;align-items:center}
+    .price-amount{font-size:1.05rem}
+    .price-amount span{font-size:0.65rem}
+    .action-buttons{flex-direction:row;gap:0.35rem;width:100%;align-items:center;margin-top:0.5rem}
+    .action-buttons .book-btn{flex-grow:1;font-size:0.75rem;padding:0.55rem 0.25rem;text-align:center}
+    .action-buttons .whatsapp-btn{width:34px;height:32px;padding:0;display:inline-flex;justify-content:center;align-items:center;flex-shrink:0;font-size:0;border-radius:6px}
+    .action-buttons .whatsapp-btn svg{width:16px;height:16px;margin:0}
+    
+    .testimonials-header{flex-direction:column;align-items:flex-start;gap:1rem}
+    .rating-summary{text-align:left}
+}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(37,211,102,0.5)}70%{box-shadow:0 0 0 15px rgba(37,211,102,0)}100%{box-shadow:0 0 0 0 rgba(37,211,102,0)}}
 /* ---- Filter Toolbar ---- */
 .filter-toolbar{display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;margin-bottom:2rem;padding:0.5rem 0}
@@ -217,20 +285,19 @@ footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem
             <div class="footer-col">
                 <h4>Company</h4>
                 <ul>
-                    <li><a href="#">About Us</a></li>
-                    <li><a href="#">Careers</a></li>
+                    <li><a href="{{ route('about', ['locale' => $locale]) }}">About Us</a></li>
                     <li><a href="#">Blog</a></li>
-                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="{{ url($locale . '#contact-form') }}">Contact Us</a></li>
                 </ul>
             </div>
             
             <div class="footer-col">
                 <h4>Information</h4>
                 <ul>
-                    <li><a href="#">FAQ</a></li>
-                    <li><a href="#">Terms & Conditions</a></li>
-                    <li><a href="#">Privacy Policy</a></li>
-                    <li><a href="#">Cookie Policy</a></li>
+                    <li><a href="{{ route('faq', ['locale' => $locale]) }}">FAQ</a></li>
+                    <li><a href="{{ route('terms', ['locale' => $locale]) }}">Terms & Conditions</a></li>
+                    <li><a href="{{ route('privacy', ['locale' => $locale]) }}">Privacy Policy</a></li>
+                    <li><a href="{{ route('cookie', ['locale' => $locale]) }}">Cookie Policy</a></li>
                 </ul>
             </div>
             

@@ -35,6 +35,14 @@ Route::group([
     // Public Contact Form Submission
     Route::post('/contact', [HomeController::class, 'storeContact'])->name('contact.store');
 
+    // Informational & Policy Pages
+    Route::get('/about', [HomeController::class, 'about'])->name('about');
+    Route::get('/faq', [HomeController::class, 'faq'])->name('faq');
+    Route::get('/terms', [HomeController::class, 'terms'])->name('terms');
+    Route::get('/privacy', [HomeController::class, 'privacy'])->name('privacy');
+    Route::get('/cookie', [HomeController::class, 'cookie'])->name('cookie');
+
+
     // Public Manage Booking routes
     Route::get('/booking/retrieve', [HomeController::class, 'retrieveBooking'])->name('booking.retrieve');
     Route::get('/booking/recalculate', [HomeController::class, 'recalculatePrice'])->name('booking.recalculate');
@@ -76,6 +84,16 @@ Route::group([
 
         // Contact Requests
         Route::delete('/contact-requests/{id}', [AdminController::class, 'deleteContactRequest'])->name('admin.contact.delete');
+
+        // API Key Management
+        Route::post('/api-keys', [AdminController::class, 'generateApiKey'])->name('admin.apikeys.store');
+        Route::post('/api-keys/update/{id}', [AdminController::class, 'updateApiKey'])->name('admin.apikeys.update');
+        Route::delete('/api-keys/{id}', [AdminController::class, 'revokeApiKey'])->name('admin.apikeys.delete');
+
+        // Partner Sites Management
+        Route::post('/partner-sites', [AdminController::class, 'storePartnerSite'])->name('admin.partners.store');
+        Route::post('/partner-sites/update/{id}', [AdminController::class, 'updatePartnerSite'])->name('admin.partners.update');
+        Route::delete('/partner-sites/{id}', [AdminController::class, 'deletePartnerSite'])->name('admin.partners.delete');
     });
 
     // Web DB installer (accessible at /en/install-db or /fr/install-db)
@@ -99,3 +117,7 @@ Route::group([
         }
     });
 });
+
+// Root-level SEO routes (accessible without locale prefix)
+Route::get('/sitemap.xml', [HomeController::class, 'sitemap'])->name('sitemap');
+Route::get('/robots.txt', [HomeController::class, 'robots'])->name('robots');

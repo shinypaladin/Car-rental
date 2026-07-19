@@ -407,7 +407,7 @@
 </section>
 
 <!-- Contact Form Section -->
-<section class="section-container" id="contact" style="margin-top: 5rem; margin-bottom: 5rem;">
+<section class="section-container" id="contact-form" style="margin-top: 5rem; margin-bottom: 5rem;">
     <div style="background: linear-gradient(135deg, #0f1d36 0%, #1e293b 100%); border: 1px solid rgba(197, 160, 89, 0.2); border-radius: 12px; padding: 3rem; max-width: 800px; margin: 0 auto; box-shadow: var(--shadow-lg);">
         <div class="section-header" style="text-align: center; display: block; margin-bottom: 2rem;">
             <h2 style="font-family: var(--font-heading); font-size: 2rem; color: #fff; margin-bottom: 0.5rem;">Contact Us</h2>
@@ -443,9 +443,17 @@
                 <textarea name="message" rows="5" required style="width: 100%; padding: 0.65rem; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; border-radius: 6px; font-size: 0.88rem; resize: vertical;"></textarea>
             </div>
 
-            <button type="submit" style="background: var(--accent-gold); color: white; border: none; padding: 0.85rem; width: 100%; border-radius: 6px; font-weight: 700; cursor: pointer; transition: background 0.2s; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">
-                Send Message
-            </button>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button type="submit" style="flex: 3; min-width: 200px; background: var(--accent-gold); color: white; border: none; padding: 0.85rem; border-radius: 6px; font-weight: 700; cursor: pointer; transition: background 0.2s; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; display: flex; justify-content: center; align-items: center;">
+                    Send Message
+                </button>
+                <a href="https://wa.me/{{ str_replace('+', '', config('app.whatsapp_phone', '212600988632')) }}" target="_blank" rel="noopener" style="flex: 2; min-width: 150px; background: #25d366; color: white; text-decoration: none; padding: 0.85rem; border-radius: 6px; font-weight: 700; cursor: pointer; transition: background 0.2s; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.977h.004c4.368 0 7.926-3.559 7.93-7.93a7.897 7.897 0 0 0-2.33-5.615zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.69-4.98c-.202-.101-1.194-.588-1.378-.653-.185-.066-.32-.099-.455.101-.134.2-.522.653-.64.789-.118.135-.235.15-.437.05-.202-.101-.85-.313-1.619-.998-.598-.534-1.002-1.195-1.12-1.395-.118-.2-.012-.307.088-.407.09-.09.202-.234.302-.35.1-.117.135-.198.202-.33.067-.133.034-.25-.017-.35-.05-.1-.455-1.096-.622-1.498-.163-.393-.328-.34-.456-.34-.117-.006-.252-.008-.387-.008-.135 0-.355.05-.54.254-.185.2-.705.688-.705 1.68 0 1 .725 1.966.827 2.1 0 .135 1.425 2.18 3.453 3.06.48.21.854.336 1.146.429.482.153.92.13 1.27.077.39-.058 1.194-.488 1.362-.958.168-.47.168-.872.118-.957-.05-.084-.186-.135-.388-.236z"/>
+                    </svg>
+                    WhatsApp Chat
+                </a>
+            </div>
         </form>
     </div>
 </section>

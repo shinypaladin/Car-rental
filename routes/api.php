@@ -9,5 +9,9 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-Route::get('/availability', [OtaApiController::class, 'checkAvailability']);
-Route::post('/booking', [OtaApiController::class, 'createBooking']);
+use App\Http\Middleware\CheckApiKey;
+
+Route::middleware([CheckApiKey::class])->group(function () {
+    Route::get('/availability', [OtaApiController::class, 'checkAvailability']);
+    Route::post('/booking', [OtaApiController::class, 'createBooking']);
+});

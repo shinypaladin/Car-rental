@@ -341,12 +341,13 @@
         </div>
 
         <!-- Navigation Tabs -->
-        <div class="tabs-navigation" style="display: flex; gap: 1rem; border-bottom: 2px solid var(--border-color); margin-bottom: 2rem;">
+        <div class="tabs-navigation" style="display: flex; gap: 1rem; border-bottom: 2px solid var(--border-color); margin-bottom: 2rem; flex-wrap: wrap;">
             <button class="tab-btn active" onclick="switchTab('fleet-tab')" id="btn-fleet-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--primary-dark); border-bottom: 3px solid var(--accent-gold); font-size: 1rem;">🏠 Fleet & Pricing</button>
             <button class="tab-btn" onclick="switchTab('extras-tab')" id="btn-extras-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">🎁 Optional Extras</button>
             <button class="tab-btn" onclick="switchTab('expenses-tab')" id="btn-expenses-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">💸 Expense Follow-Up</button>
             <button class="tab-btn" onclick="switchTab('bookings-tab')" id="btn-bookings-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">📅 Reservation Log</button>
             <button class="tab-btn" onclick="switchTab('contacts-tab')" id="btn-contacts-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">💬 Contact Messages</button>
+            <button class="tab-btn" onclick="switchTab('api-tab')" id="btn-api-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">🔑 API Integration</button>
         </div>
 
         <!-- tab 2: Optional Extras Management -->
@@ -987,6 +988,179 @@
             </div>
         </div> <!-- End of contacts-tab -->
 
+        <!-- tab 6: API Integration Manager -->
+        <div id="api-tab" class="tab-content" style="display: none;">
+            <div class="admin-grid" style="margin-bottom: 5rem;">
+                <div class="panel">
+                    <h2>Authorized API Keys</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+                        These keys authorize external booking channels (e.g. Booking.com, Expedia) to fetch car availability and push bookings into your dashboard via <code>POST /api/booking</code>. Keep these keys secure.
+                    </p>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Partner Name</th>
+                                <th>API Key (Token)</th>
+                                <th>Discount / Commission</th>
+                                <th>Status</th>
+                                <th>Generated At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($apiKeys as $key)
+                            <tr>
+                                <td><strong>{{ $key->name }}</strong></td>
+                                <td><code>{{ $key->key }}</code></td>
+                                <td><strong style="color: var(--accent-gold);">{{ $key->discount_percent }}% discount</strong></td>
+                                <td>
+                                    <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 600; font-size: 0.75rem;">
+                                        Active
+                                    </span>
+                                </td>
+                                <td style="color: var(--text-muted);">{{ $key->created_at->format('Y-m-d H:i') }}</td>
+                                <td>
+                                    <button type="button" onclick="openEditApiKeyModal({{ json_encode($key) }})" style="color:var(--primary-blue); background:none; border:none; cursor:pointer; font-weight:600; margin-right:15px;">Edit</button>
+                                    <form action="/{{ $locale }}/admin/api-keys/{{ $key->id }}" method="POST" onsubmit="return confirm('Revoke this API key? External systems using this key will immediately lose access!')" style="display:inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" style="color:red; background:none; border:none; cursor:pointer; font-weight:600;">Revoke Access</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            @endforeach
+                            @if($apiKeys->isEmpty())
+                            <tr>
+                                <td colspan="6" style="text-align: center; color: var(--text-muted); font-style: italic; padding: 2rem;">
+                                    No active API keys generated.
+                                </td>
+                            </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="panel">
+                    <h2>Generate API Key</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+                        Create new credentials for a partner channel or booking system to interact with your fleet programmatically.
+                    </p>
+                    
+                    <form action="/{{ $locale }}/admin/api-keys" method="POST">
+                        @csrf
+                        <div class="form-group">
+                            <label>Partner / Channel Name</label>
+                            <input type="text" name="name" placeholder="e.g. Booking.com Integration" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Discount / Commission (%)</label>
+                            <input type="number" name="discount_percent" value="0" min="0" max="100" required>
+                            <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">The percentage discount applied to rates sent to this partner (e.g. 15% for booking.com).</span>
+                        </div>
+                        
+                        <button type="submit" class="btn-submit">Generate Access Key</button>
+                    </form>
+
+                    <div style="margin-top: 2rem; background: var(--bg-light); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.25rem;">
+                        <h4 style="margin-top: 0; color: var(--primary-dark); font-size: 0.88rem; margin-bottom: 0.5rem;">💡 API Integration Guide</h4>
+                        <p style="font-size: 0.8rem; line-height: 1.5; color: var(--text-muted); margin-bottom: 0.5rem;">
+                            To push a reservation from an external channel, they must send a <strong>POST</strong> request to:
+                            <br><code>{{ url('/api/booking') }}</code>
+                        </p>
+                        <p style="font-size: 0.8rem; line-height: 1.5; color: var(--text-muted);">
+                            They must include the generated key in the request header:
+                            <br><code>X-API-KEY: [Generated Token]</code>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-grid" style="margin-bottom: 5rem; border-top: 2px solid var(--border-color); padding-top: 3rem;">
+                <div class="panel">
+                    <h2>Pull Partners Inventory (Receive Fleet)</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+                        Register external partners' booking systems to dynamically pull their available cars, list them on your homepage, and auto-book them on their system.
+                    </p>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Partner Agency</th>
+                                <th>API Endpoint URL</th>
+                                <th>Commission Markup</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($partnerSites as $partner)
+                            <tr>
+                                <td><strong>{{ $partner->name }}</strong></td>
+                                <td><code>{{ $partner->api_url }}</code></td>
+                                <td><strong style="color: var(--accent-gold);">+{{ $partner->markup_percent }}%</strong></td>
+                                <td>
+                                    <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 600; font-size: 0.75rem;">
+                                        Connected
+                                    </span>
+                                </td>
+                                <td>
+                                    <button type="button" onclick="openEditPartnerModal({{ json_encode($partner) }})" style="color:var(--primary-blue); background:none; border:none; cursor:pointer; font-weight:600; margin-right:15px;">Edit</button>
+                                    <form action="/{{ $locale }}/admin/partner-sites/{{ $partner->id }}" method="POST" onsubmit="return confirm('Remove this partner connection? Their cars will immediately disappear from your homepage!')" style="display:inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" style="color:red; background:none; border:none; cursor:pointer; font-weight:600;">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            @endforeach
+                            @if($partnerSites->isEmpty())
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-muted); font-style: italic; padding: 2rem;">
+                                    No external partner sites connected.
+                                </td>
+                            </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="panel">
+                    <h2>Connect Partner Agency</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+                        Connect to another agency's API endpoint using the credentials they provided.
+                    </p>
+                    
+                    <form action="/{{ $locale }}/admin/partner-sites" method="POST">
+                        @csrf
+                        <div class="form-group">
+                            <label>Agency Name</label>
+                            <input type="text" name="name" placeholder="e.g. Casablanca Rentals" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>API Endpoint URL (Base endpoint)</label>
+                            <input type="url" name="api_url" placeholder="e.g. https://casablanca-rentals.com/api" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>API Access Key (X-API-KEY)</label>
+                            <input type="text" name="api_key" placeholder="Enter key provided by partner" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Commission Markup (%)</label>
+                            <input type="number" name="markup_percent" value="10" min="0" max="100" required>
+                            <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Percentage to add to their rates when showing to your website clients.</span>
+                        </div>
+                        
+                        <button type="submit" class="btn-submit">Connect Partner</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
 
     </div>
 
@@ -1394,10 +1568,14 @@
             const manualModal = document.getElementById('manualBookingModal');
             const visitsModal = document.getElementById('visitsModal');
             const editExtraModal = document.getElementById('editExtraModal');
+            const editPartnerModal = document.getElementById('editPartnerModal');
+            const editApiKeyModal = document.getElementById('editApiKeyModal');
             if (event.target == editModal) closeEditModal();
             if (event.target == manualModal) closeManualBookingModal();
             if (event.target == visitsModal) closeVisitsModal();
             if (event.target == editExtraModal) closeEditExtraModal();
+            if (event.target == editPartnerModal) closeEditPartnerModal();
+            if (event.target == editApiKeyModal) closeEditApiKeyModal();
         }
 
         // --- Revenue Month Filter ---
@@ -1440,6 +1618,32 @@
         function closeEditExtraModal() {
             document.getElementById('editExtraModal').style.display = 'none';
         }
+
+        // --- Edit Partner Modal ---
+        function openEditPartnerModal(partner) {
+            document.getElementById('editPartnerForm').action = '/' + locale + '/admin/partner-sites/update/' + partner.id;
+            document.getElementById('edit_partner_name').value = partner.name;
+            document.getElementById('edit_partner_api_url').value = partner.api_url;
+            document.getElementById('edit_partner_api_key').value = partner.api_key;
+            document.getElementById('edit_partner_markup_percent').value = partner.markup_percent;
+            document.getElementById('editPartnerModal').style.display = 'flex';
+        }
+
+        function closeEditPartnerModal() {
+            document.getElementById('editPartnerModal').style.display = 'none';
+        }
+
+        // --- Edit API Key Modal ---
+        function openEditApiKeyModal(apiKey) {
+            document.getElementById('editApiKeyForm').action = '/' + locale + '/admin/api-keys/update/' + apiKey.id;
+            document.getElementById('edit_apikey_name').value = apiKey.name;
+            document.getElementById('edit_apikey_discount_percent').value = apiKey.discount_percent;
+            document.getElementById('editApiKeyModal').style.display = 'flex';
+        }
+
+        function closeEditApiKeyModal() {
+            document.getElementById('editApiKeyModal').style.display = 'none';
+        }
     </script>
 
     <!-- Edit Extra Modal -->
@@ -1478,7 +1682,6 @@
             </form>
         </div>
     </div>
-
 
     <!-- Visitor Logs Modal -->
     <div id="visitsModal" class="modal">
@@ -1521,6 +1724,60 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+
+    <!-- Edit Partner Modal -->
+    <div id="editPartnerModal" class="modal">
+        <div class="modal-content">
+            <button onclick="closeEditPartnerModal()" class="modal-close">&times;</button>
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary-dark); font-family: 'Outfit', sans-serif;">Edit Partner Settings</h2>
+            <form id="editPartnerForm" method="POST" action="">
+                @csrf
+                <div class="form-group">
+                    <label>Agency Name</label>
+                    <input type="text" name="name" id="edit_partner_name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>API Endpoint URL</label>
+                    <input type="url" name="api_url" id="edit_partner_api_url" required>
+                </div>
+
+                <div class="form-group">
+                    <label>API Access Key (X-API-KEY)</label>
+                    <input type="text" name="api_key" id="edit_partner_api_key" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Commission Markup (%)</label>
+                    <input type="number" name="markup_percent" id="edit_partner_markup_percent" min="0" max="100" required>
+                </div>
+                
+                <button type="submit" class="btn-submit">Save Partner Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit API Key Modal -->
+    <div id="editApiKeyModal" class="modal">
+        <div class="modal-content">
+            <button onclick="closeEditApiKeyModal()" class="modal-close">&times;</button>
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary-dark); font-family: 'Outfit', sans-serif;">Edit API Key Settings</h2>
+            <form id="editApiKeyForm" method="POST" action="">
+                @csrf
+                <div class="form-group">
+                    <label>Partner / Channel Name</label>
+                    <input type="text" name="name" id="edit_apikey_name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Discount / Commission (%)</label>
+                    <input type="number" name="discount_percent" id="edit_apikey_discount_percent" min="0" max="100" required>
+                </div>
+                
+                <button type="submit" class="btn-submit">Save API Key Changes</button>
+            </form>
         </div>
     </div>
 

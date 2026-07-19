@@ -44,6 +44,68 @@ class HomeController extends Controller
             $car->is_available = $car->available_count > 0;
         }
 
+        // 3. Fetch and merge partner inventory
+        $partnerCars = \App\Helpers\PartnerAggregator::fetchPartnerCars($pickupDt->toDateTimeString(), $returnDt->toDateTimeString());
+
+        $mergedCars = [];
+        foreach ($cars as $car) {
+            $mergedCars[] = [
+                'id' => (string) $car->id,
+                'brand' => $car->brand,
+                'model' => $car->model,
+                'category' => $car->category,
+                'seats' => $car->seats,
+                'transmission' => $car->transmission,
+                'ac' => $car->ac ? 'Yes' : 'No',
+                'quantity' => $car->quantity,
+                'display_price' => $car->display_price,
+                'total_price' => $car->total_price,
+                'image_path' => $car->image_path,
+                'video_path' => $car->video_path,
+                'is_available' => $car->is_available,
+                'available_count' => $car->available_count,
+                'is_partner' => false,
+                'partner_name' => '',
+                'partner_id' => null,
+                'partner_vehicle_id' => null,
+                'days' => $car->days ?? 4,
+            ];
+        }
+
+        foreach ($partnerCars as $pCar) {
+            $mergedCars[] = [
+                'id' => $pCar['id'],
+                'brand' => $pCar['brand'],
+                'model' => $pCar['model'],
+                'category' => $pCar['category'],
+                'seats' => $pCar['seats'],
+                'transmission' => $pCar['transmission'],
+                'ac' => $pCar['ac'],
+                'quantity' => $pCar['quantity'],
+                'display_price' => $pCar['base_price'],
+                'total_price' => $pCar['total_price'],
+                'image_path' => $pCar['image_path'],
+                'video_path' => null,
+                'is_available' => true,
+                'available_count' => 1,
+                'is_partner' => true,
+                'partner_name' => $pCar['partner_name'],
+                'partner_id' => $pCar['partner_id'],
+                'partner_vehicle_id' => $pCar['partner_vehicle_id'],
+                'days' => $pricing['days'] ?? 4,
+            ];
+        }
+
+        // Sort by total_price ascending
+        usort($mergedCars, function ($a, $b) {
+            return $a['total_price'] <=> $b['total_price'];
+        });
+
+        // Convert array to collection of stdClass objects so view handles it normally
+        $cars = collect(array_map(function ($item) {
+            return (object) $item;
+        }, $mergedCars));
+
         $extras = \App\Models\Extra::all();
         $reviews = \App\Services\GoogleReviewsService::getReviewsData();
 
@@ -232,5 +294,86 @@ class HomeController extends Controller
         ]);
 
         return back()->with('success', 'Your message has been sent successfully. We will get back to you soon!');
+    }
+
+    public function faq(Request $request, $locale = 'en')
+    {
+        return view('faq', compact('locale'));
+    }
+
+    public function terms(Request $request, $locale = 'en')
+    {
+        return view('terms', compact('locale'));
+    }
+
+    public function privacy(Request $request, $locale = 'en')
+    {
+        return view('privacy', compact('locale'));
+    }
+
+    public function cookie(Request $request, $locale = 'en')
+    {
+        return view('cookie', compact('locale'));
+    }
+
+    public function about(Request $request, $locale = 'en')
+    {
+        return view('about', compact('locale'));
+    }
+
+    public function sitemap()
+    {
+        $pages = ['', 'about', 'faq', 'terms', 'privacy', 'cookie'];
+        $urls = [];
+        $now = \Carbon\Carbon::now()->toIso8601String();
+
+        foreach ($pages as $page) {
+            $basePath = $page === '' ? '' : '/' . $page;
+            $enUrl = url('/en' . $basePath);
+            $frUrl = url('/fr' . $basePath);
+
+            $urls[] = [
+                'loc' => $enUrl,
+                'lastmod' => $now,
+                'changefreq' => 'weekly',
+                'priority' => $page === '' ? '1.0' : '0.8',
+                'alternates' => [
+                    ['lang' => 'en', 'href' => $enUrl],
+                    ['lang' => 'fr', 'href' => $frUrl],
+                    ['lang' => 'x-default', 'href' => $enUrl],
+                ]
+            ];
+
+            $urls[] = [
+                'loc' => $frUrl,
+                'lastmod' => $now,
+                'changefreq' => 'weekly',
+                'priority' => $page === '' ? '1.0' : '0.8',
+                'alternates' => [
+                    ['lang' => 'en', 'href' => $enUrl],
+                    ['lang' => 'fr', 'href' => $frUrl],
+                    ['lang' => 'x-default', 'href' => $enUrl],
+                ]
+            ];
+        }
+
+        return response()->view('sitemap', compact('urls'))
+            ->header('Content-Type', 'text/xml');
+    }
+
+    public function robots()
+    {
+        $sitemapUrl = url('/sitemap.xml');
+        $robots = <<<TEXT
+User-agent: *
+Disallow: /en/admin
+Disallow: /fr/admin
+Disallow: /admin
+Allow: /
+
+Sitemap: {$sitemapUrl}
+TEXT;
+
+        return response($robots)->header('Content-Type', 'text/plain');
     }
 }

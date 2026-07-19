@@ -38,6 +38,10 @@ class OtaApiController extends Controller
             ], $format, 400);
         }
 
+        $apiKeyModel = $request->attributes->get('api_key_model');
+        $discountPercent = $apiKeyModel ? (float) $apiKeyModel->discount_percent : 0.00;
+        $discountFactor = 1 - ($discountPercent / 100);
+
         $cars = Car::all();
         $availableVehicles = [];
 
@@ -49,6 +53,9 @@ class OtaApiController extends Controller
                 // Calculate seasonal pricing
                 $pricing = PricingEngine::calculatePrice($car, $pickupDt, $returnDt);
                 
+                $ratePerDay = ceil(round($pricing['average_daily_rate'] * $discountFactor, 2));
+                $totalPrice = ceil(round($pricing['total_price'] * $discountFactor, 2));
+
                 $availableVehicles[] = [
                     'vehicle_id' => $car->id,
                     'brand' => $car->brand,
@@ -58,9 +65,9 @@ class OtaApiController extends Controller
                     'ac' => $car->ac ? 'Yes' : 'No',
                     'seats' => $car->seats,
                     'available_quantity' => $car->allow_overbooking ? 99 : $availableQty,
-                    'rate_per_day' => $pricing['average_daily_rate'],
+                    'rate_per_day' => $ratePerDay,
                     'currency' => 'MAD',
-                    'total_price' => $pricing['total_price'],
+                    'total_price' => $totalPrice,
                     'days' => $pricing['days'],
                 ];
             }

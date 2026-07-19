@@ -125,11 +125,17 @@ class AdminController extends Controller
         // Contact Requests
         $contactRequests = \App\Models\ContactRequest::orderBy('created_at', 'desc')->get();
 
+        // API Keys
+        $apiKeys = \App\Models\ApiKey::orderBy('created_at', 'desc')->get();
+
+        // Partner Sites
+        $partnerSites = \App\Models\PartnerSite::orderBy('created_at', 'desc')->get();
+
         return view('admin.dashboard', compact(
             'cars', 'bookings', 'monthBookings', 'seasonalPrices', 'locale',
             'visits24h', 'visits7d', 'visits30d', 'totalMonthlyExpenses',
             'topCountries', 'allVisits', 'expenses', 'automatedExpensesSum',
-            'revenueByMonth', 'extras', 'contactRequests',
+            'revenueByMonth', 'extras', 'contactRequests', 'apiKeys', 'partnerSites',
             'selectedMonth', 'selectedMonthData', 'monthOptions', 'filterDate'
         ));
     }
@@ -397,6 +403,75 @@ class AdminController extends Controller
      */
     public function storeBooking(Request $request, $locale = 'en')
     {
+        $carIdInput = $request->input('car_id');
+        $isPartnerBooking = is_string($carIdInput) && str_starts_with($carIdInput, 'partner_');
+
+        if ($isPartnerBooking) {
+            $request->validate([
+                'car_id' => 'required|string',
+                'customer_name' => 'required|string',
+                'customer_email' => 'required|email',
+                'customer_phone' => 'required|string',
+                'pickup_location_val' => 'required|string',
+                'return_location_val' => 'nullable|string',
+                'pickup_datetime_val' => 'required|string',
+                'return_datetime_val' => 'required|string',
+                'extras' => 'nullable|array',
+            ]);
+
+            // Parse ID: partner_{partner_id}_{partner_vehicle_id}
+            $parts = explode('_', $carIdInput);
+            $partnerId = $parts[1] ?? null;
+            $partnerVehicleId = $parts[2] ?? null;
+
+            $partner = \App\Models\PartnerSite::findOrFail($partnerId);
+            $pickupDt = Carbon::parse($request->pickup_datetime_val);
+            $returnDt = Carbon::parse($request->return_datetime_val);
+
+            // Re-fetch partner pricing to confirm rate and avoid tampering
+            $partnerCars = \App\Helpers\PartnerAggregator::fetchPartnerCars($pickupDt->toDateTimeString(), $returnDt->toDateTimeString());
+            $matchedCar = collect($partnerCars)->firstWhere('partner_vehicle_id', $partnerVehicleId);
+
+            if (!$matchedCar) {
+                return back()->with('error', 'Sorry, this partner vehicle is no longer available.');
+            }
+
+            // Forward reservation details to partner API
+            $forwardResult = \App\Helpers\PartnerAggregator::forwardBookingToPartner($partner, [
+                'partner_vehicle_id' => $partnerVehicleId,
+                'customer_name' => $request->customer_name,
+                'customer_email' => $request->customer_email,
+                'customer_phone' => $request->customer_phone,
+                'pickup_datetime' => $pickupDt->toDateTimeString(),
+                'return_datetime' => $returnDt->toDateTimeString(),
+            ]);
+
+            if (!$forwardResult || ($forwardResult['status'] ?? 'error') !== 'success') {
+                return back()->with('error', 'Could not confirm reservation with our partner. Please try again.');
+            }
+
+            // Save booking in local DB to keep track of it
+            $booking = Booking::create([
+                'booking_reference' => Booking::generateReference(),
+                'car_id' => null, // null for external partner car
+                'customer_name' => $request->customer_name,
+                'customer_email' => $request->customer_email,
+                'customer_phone' => $request->customer_phone,
+                'pickup_location' => $request->pickup_location_val,
+                'return_location' => $request->return_location_val ?? $request->pickup_location_val,
+                'pickup_datetime' => $pickupDt,
+                'return_datetime' => $returnDt,
+                'total_price' => $matchedCar['total_price'],
+                'status' => 'confirmed', // confirmed because partner site approved it
+                'source' => $partner->name . ' (Partner)',
+                'extras' => $request->input('extras', []),
+            ]);
+
+            return redirect()->route('home', ['locale' => $locale])
+                ->with('success', 'Booking requested successfully! Partner Reference: ' . $booking->booking_reference);
+        }
+
+        // Local car booking validation and process
         $request->validate([
             'car_id' => 'required|exists:cars,id',
             'customer_name' => 'required|string',
@@ -409,7 +484,7 @@ class AdminController extends Controller
             'extras' => 'nullable|array',
         ]);
 
-        $car = Car::findOrFail($request->car_id);
+        $car = Car::findOrFail($carIdInput);
         
         $pickupDt = Carbon::parse($request->pickup_datetime_val);
         $returnDt = Carbon::parse($request->return_datetime_val);
@@ -545,5 +620,111 @@ class AdminController extends Controller
         $extra->delete();
 
         return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Optional extra deleted successfully.');
+    }
+
+    public function generateApiKey(Request $request, $locale = 'en')
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'discount_percent' => 'nullable|numeric|min:0|max:100',
+        ]);
+
+        $token = 'cap_' . bin2hex(random_bytes(24));
+
+        \App\Models\ApiKey::create([
+            'name' => $request->name,
+            'key' => $token,
+            'active' => true,
+            'discount_percent' => $request->input('discount_percent', 0.00) ?: 0.00,
+        ]);
+
+        return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'API Key generated successfully.');
+    }
+
+    /**
+     * Update an existing API key.
+     */
+    public function updateApiKey(Request $request, $locale = 'en', $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'discount_percent' => 'required|numeric|min:0|max:100',
+        ]);
+
+        $apiKey = \App\Models\ApiKey::findOrFail($id);
+        $apiKey->update([
+            'name' => $request->name,
+            'discount_percent' => $request->discount_percent,
+        ]);
+
+        return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'API Key updated successfully.');
+    }
+
+    /**
+     * Revoke / Delete an API key.
+     */
+    public function revokeApiKey($locale = 'en', $id)
+    {
+        $apiKey = \App\Models\ApiKey::findOrFail($id);
+        $apiKey->delete();
+
+        return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'API Key revoked successfully.');
+    }
+
+    /**
+     * Store a new partner site.
+     */
+    public function storePartnerSite(Request $request, $locale = 'en')
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'api_url' => 'required|url|max:255',
+            'api_key' => 'required|string|max:255',
+            'markup_percent' => 'required|numeric|min:0|max:100',
+        ]);
+
+        \App\Models\PartnerSite::create([
+            'name' => $request->name,
+            'api_url' => $request->api_url,
+            'api_key' => $request->api_key,
+            'markup_percent' => $request->markup_percent,
+            'active' => true,
+        ]);
+
+        return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Partner site added successfully.');
+    }
+
+    /**
+     * Update an existing partner site.
+     */
+    public function updatePartnerSite(Request $request, $locale = 'en', $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'api_url' => 'required|url|max:255',
+            'api_key' => 'required|string|max:255',
+            'markup_percent' => 'required|numeric|min:0|max:100',
+        ]);
+
+        $partner = \App\Models\PartnerSite::findOrFail($id);
+        $partner->update([
+            'name' => $request->name,
+            'api_url' => $request->api_url,
+            'api_key' => $request->api_key,
+            'markup_percent' => $request->markup_percent,
+        ]);
+
+        return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Partner site updated successfully.');
+    }
+
+    /**
+     * Delete a partner site configuration.
+     */
+    public function deletePartnerSite($locale = 'en', $id)
+    {
+        $partner = \App\Models\PartnerSite::findOrFail($id);
+        $partner->delete();
+
+        return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Partner site removed successfully.');
     }
 }
