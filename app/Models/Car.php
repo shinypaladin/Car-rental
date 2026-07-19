@@ -12,6 +12,8 @@ class Car extends Model
     protected $fillable = [
         'brand',
         'model',
+        'model_year',
+        'model_month',
         'category',
         'seats',
         'transmission',
@@ -47,22 +49,27 @@ class Car extends Model
     /**
      * Get available quantity for a date range.
      */
-    public function getAvailableCountForRange($startDate, $endDate)
+    public function getAvailableCountForRange($startDate, $endDate, $excludeBookingId = null)
     {
         if ($this->allow_overbooking) {
             return 999; // unlimited availability simulated
         }
 
         // Count overlapping active bookings
-        $activeBookingsCount = $this->bookings()
-            ->where('status', '!=', 'cancelled')
-            ->where(function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('pickup_datetime', [$startDate, $endDate])
-                      ->orWhereBetween('return_datetime', [$startDate, $endDate])
-                      ->orWhere(function ($q2) use ($startDate, $endDate) {
-                          $q2->where('pickup_datetime', '<=', $startDate)
-                             ->where('return_datetime', '>=', $endDate);
-                      });
+        $query = $this->bookings()
+            ->where('status', '!=', 'cancelled');
+
+        if ($excludeBookingId) {
+            $query->where('id', '!=', $excludeBookingId);
+        }
+
+        $activeBookingsCount = $query->where(function ($q) use ($startDate, $endDate) {
+                $q->whereBetween('pickup_datetime', [$startDate, $endDate])
+                  ->orWhereBetween('return_datetime', [$startDate, $endDate])
+                  ->orWhere(function ($q2) use ($startDate, $endDate) {
+                      $q2->where('pickup_datetime', '<=', $startDate)
+                         ->where('return_datetime', '>=', $endDate);
+                  });
             })
             ->count();
 

@@ -86,7 +86,7 @@ class OtaApiController extends Controller
 
         // Allow posting either in standard HTTP Form, JSON, or raw XML
         $data = $request->all();
-        if ($request->isXml() || $request->header('Content-Type') === 'application/xml') {
+        if (str_contains($request->header('Content-Type', ''), 'application/xml')) {
             $data = $this->parseXml($request->getContent());
         }
 
@@ -191,7 +191,7 @@ class OtaApiController extends Controller
     private function parseXml($xmlString)
     {
         try {
-            $xml = simplexml_load_string($xmlString);
+            $xml = simplexml_load_string(trim($xmlString));
             return json_decode(json_encode($xml), true);
         } catch (\Exception $e) {
             return [];

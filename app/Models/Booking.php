@@ -23,11 +23,13 @@ class Booking extends Model
         'total_price',
         'status',
         'source',
+        'extras',
     ];
 
     protected $casts = [
         'pickup_datetime' => 'datetime',
         'return_datetime' => 'datetime',
+        'extras' => 'array',
     ];
 
     /**

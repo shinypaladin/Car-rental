@@ -1,0 +1,7 @@
+Handled items:
+1: Monthly expenses are now recurring each month, and correctly dynamically computed in the dashboard panels and projections.
+2: Added model year and month metadata to car fleet. Dashboard shows inspection warnings (initial after 4 years, then every 2 years) and retirement warnings (5 years max).
+3: XML/API channel connection capabilities implemented, including JSON and XML booking endpoints. Full feature tests integrated into the test suite.
+4: Configured GOOGLE_PLACES_API_KEY with the provided Google API key. Verified Google Reviews are loaded live from the Maps listing.
+5: Implemented persistent EUR/MAD currency selector in the header with client-side real-time exchange rates (1 EUR = 11 DH) to default to Euros on first visit.
+6: Added a premium client contact form on the home page. Message records are logged in the Admin Panel under the new "Contact Messages" tab where admins can view and delete them.

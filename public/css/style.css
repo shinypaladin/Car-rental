@@ -851,3 +851,131 @@ footer {
         box-shadow: 0 0 0 0 rgba(37, 211, 102, 0);
     }
 }
+
+/* Premium Filter Toolbar — light background variant */
+.filter-toolbar {
+    margin-bottom: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: center;
+    padding: 0.75rem 0;
+}
+
+.filter-toolbar .filter-group {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.filter-toolbar .filter-divider {
+    width: 1px;
+    height: 28px;
+    background: var(--border-color, #e2e8f0);
+    margin: 0 0.4rem;
+}
+
+/* The pill filter buttons — light-mode elegant style */
+.filter-btn {
+    background: #f1f5f9;
+    border: 1.5px solid #e2e8f0;
+    color: #475569;
+    padding: 0.4rem 1rem !important;
+    border-radius: 30px !important;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+    box-shadow: none;
+}
+
+.filter-btn:hover {
+    background: #e8f0fe;
+    border-color: #94a3b8;
+    color: var(--primary-blue, #0f1d36);
+    transform: none;
+    box-shadow: none;
+}
+
+.filter-btn.active {
+    background: var(--primary-blue, #0f1d36);
+    color: #ffffff;
+    border-color: var(--primary-blue, #0f1d36);
+    font-weight: 700;
+    box-shadow: 0 3px 10px rgba(15, 29, 54, 0.25);
+}
+
+/* FAQ Accordion Styles */
+.faq-item:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(197, 160, 89, 0.3) !important;
+}
+
+.faq-trigger:hover {
+    color: var(--accent-gold, #c5a059) !important;
+}
+
+/* ========================================
+   Premium Form Elements Override
+   ======================================== */
+.input-wrapper input,
+.input-wrapper select,
+.form-group input,
+.form-group select {
+    border: 1.5px solid var(--border-color, #e2e8f0);
+    border-radius: 8px;
+    font-family: var(--font-body, 'Inter', sans-serif);
+    font-size: 0.9rem;
+    background-color: #ffffff;
+    color: #1e293b;
+    outline: none;
+    transition: border-color 0.25s ease-in-out, box-shadow 0.25s ease-in-out;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+}
+
+.input-wrapper input:focus,
+.input-wrapper select:focus,
+.form-group input:focus,
+.form-group select:focus {
+    border-color: var(--accent-gold, #c5a059);
+    box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.18);
+    background-color: #fffdf8;
+}
+
+/* Checkbox accent */
+input[type="checkbox"] {
+    accent-color: var(--accent-gold, #c5a059);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+/* ========================================
+   Global Button Premium Micro-interactions
+   (do NOT override .filter-btn radius)
+   ======================================== */
+.btn-submit,
+.book-btn,
+.search-btn {
+    border-radius: 8px;
+    font-weight: 700;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.btn-submit:hover,
+.book-btn:hover,
+.search-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px -2px rgba(15, 29, 54, 0.18), 0 4px 6px -1px rgba(15, 29, 54, 0.1);
+}
+
+.btn-submit:active,
+.book-btn:active,
+.search-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+

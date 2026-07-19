@@ -50,4 +50,5 @@ return [
     'discover_more' => 'Discover More',
     'customer_says' => 'What our customers say',
     'based_on' => 'Based on 650+ reviews',
+    'my_booking' => 'My Booking',
 ];

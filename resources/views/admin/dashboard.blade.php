@@ -278,42 +278,56 @@
         </div>
         @endif
         
-        <!-- Stats Widgets -->
+        <!-- Global Month Selector Bar -->
+        <form method="GET" action="" id="monthFilterForm" style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; background: var(--bg-light); padding: 0.85rem 1.25rem; border-radius: 10px; border: 1px solid var(--border-color);">
+            <span style="font-weight: 700; font-size: 0.85rem; color: var(--primary-dark);">📅 Viewing Month:</span>
+            <select name="month" onchange="this.form.submit()" style="padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid #cbd5e1; font-weight: 600; font-size: 0.88rem; color: var(--primary-dark); cursor: pointer; background: #fff;">
+                @foreach($monthOptions as $opt)
+                <option value="{{ $opt['value'] }}" {{ $opt['selected'] ? 'selected' : '' }}>{{ $opt['label'] }}</option>
+                @endforeach
+                <option value="__3m" {{ $selectedMonth === '__3m' ? 'selected' : '' }}>Next 3 Months (combined)</option>
+                <option value="__6m" {{ $selectedMonth === '__6m' ? 'selected' : '' }}>Next 6 Months (combined)</option>
+            </select>
+            <span style="font-size: 0.8rem; color: var(--text-muted);">All panels below reflect the selected month</span>
+        </form>
+
+        <!-- Stats Widgets (all filtered by selected month) -->
         <div class="stats-grid" style="margin-bottom: 2rem;">
             <div class="stat-card">
                 <h3>Total Fleet Size</h3>
                 <div class="value">{{ $cars->sum('quantity') }} Vehicles</div>
             </div>
-            
+
             <div class="stat-card">
-                <h3>Active Bookings</h3>
-                <div class="value">{{ $bookings->where('status', 'confirmed')->count() }} Confirmed</div>
+                <h3>Confirmed Bookings</h3>
+                <div class="value">{{ $selectedMonthData['bookings'] }} Confirmed</div>
+                <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.25rem;">{{ $filterDate->format('F Y') }}</div>
             </div>
-            
+
             <div class="stat-card">
                 <h3>Pending Bookings</h3>
-                <div class="value">{{ $bookings->where('status', 'pending')->count() }} Pending</div>
+                <div class="value">{{ $selectedMonthData['pending'] }} Pending</div>
+                <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.25rem;">{{ $filterDate->format('F Y') }}</div>
             </div>
-            
+
             <div class="stat-card" style="border-left: 4px solid #10b981;">
-                <h3>Projected Revenues</h3>
-                <div class="value" style="color: #10b981;">{{ number_format($bookings->where('status', 'confirmed')->sum('total_price')) }} DH</div>
+                <h3>Projected Revenue</h3>
+                <div class="value" style="color: #10b981;">{{ number_format($selectedMonthData['revenue']) }} DH</div>
+                <div style="font-size:0.78rem;color:var(--text-muted);margin-top:0.25rem;">{{ $filterDate->format('F Y') }} · Confirmed only</div>
             </div>
         </div>
 
         <div class="stats-grid" style="margin-bottom: 2rem; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
             <div class="stat-card" style="border-left: 4px solid #ef4444;">
-                <h3>Total Monthly Expenses</h3>
-                <div class="value" style="color: #ef4444;">{{ number_format($totalMonthlyExpenses) }} DH</div>
-                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Loan/Insurance/Service/Fuel</div>
+                <h3>Monthly Expenses</h3>
+                <div class="value" style="color: #ef4444;">{{ number_format($selectedMonthData['expenses']) }} DH</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Fixed + Manual · {{ $filterDate->format('M Y') }}</div>
             </div>
-            
+
             <div class="stat-card" style="border-left: 4px solid #c5a059;">
-                <h3>Net Projected Revenue</h3>
-                <div class="value" style="color: #c5a059;">
-                    {{ number_format($bookings->where('status', 'confirmed')->sum('total_price') - $totalMonthlyExpenses) }} DH
-                </div>
-                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Projected Rev - Monthly Exp</div>
+                <h3>Net Projected Profit</h3>
+                <div class="value" style="color: {{ $selectedMonthData['net'] >= 0 ? '#c5a059' : '#ef4444' }};">{{ number_format($selectedMonthData['net']) }} DH</div>
+                <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Revenue − Expenses</div>
             </div>
 
             <div class="stat-card" style="grid-column: span 2;">
@@ -329,8 +343,89 @@
         <!-- Navigation Tabs -->
         <div class="tabs-navigation" style="display: flex; gap: 1rem; border-bottom: 2px solid var(--border-color); margin-bottom: 2rem;">
             <button class="tab-btn active" onclick="switchTab('fleet-tab')" id="btn-fleet-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--primary-dark); border-bottom: 3px solid var(--accent-gold); font-size: 1rem;">🏠 Fleet & Pricing</button>
+            <button class="tab-btn" onclick="switchTab('extras-tab')" id="btn-extras-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">🎁 Optional Extras</button>
             <button class="tab-btn" onclick="switchTab('expenses-tab')" id="btn-expenses-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">💸 Expense Follow-Up</button>
             <button class="tab-btn" onclick="switchTab('bookings-tab')" id="btn-bookings-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">📅 Reservation Log</button>
+            <button class="tab-btn" onclick="switchTab('contacts-tab')" id="btn-contacts-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">💬 Contact Messages</button>
+        </div>
+
+        <!-- tab 2: Optional Extras Management -->
+        <div id="extras-tab" class="tab-content" style="display:none;">
+            <div class="admin-grid">
+                <!-- Left: Extras Table -->
+                <div class="panel">
+                    <h2>Optional Extras Catalogue</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Slug</th>
+                                <th>Price</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($extras as $extra)
+                            <tr>
+                                <td><strong>{{ $extra->name }}</strong></td>
+                                <td><code>{{ $extra->slug }}</code></td>
+                                <td><strong>{{ $extra->price }} DH</strong></td>
+                                <td>
+                                    <span class="badge" style="background: {{ $extra->type === 'per_day' ? '#e0f2fe; color:#0369a1' : '#f3e8ff; color:#6b21a8' }};">
+                                        {{ $extra->type === 'per_day' ? '/day' : 'Flat' }}
+                                    </span>
+                                </td>
+                                <td style="font-size:0.8rem; color:#64748b;">{{ $extra->description ?? '—' }}</td>
+                                <td>
+                                    <a href="#" onclick="openEditExtraModal({{ json_encode($extra) }})" style="color: #c5a059; margin-right: 0.5rem; text-decoration: none; font-weight: 600;">Edit</a>
+                                    <form action="/{{ $locale }}/admin/extras/{{ $extra->id }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this extra?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" style="color:red; background:none; border:none; cursor:pointer; font-weight:600;">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Right: Add New Extra Form -->
+                <div class="panel">
+                    <h2>Add New Extra</h2>
+                    <form action="/{{ $locale }}/admin/extras" method="POST">
+                        @csrf
+                        <div class="form-group">
+                            <label>Display Name</label>
+                            <input type="text" name="name" required placeholder="e.g. Full Insurance (CDW)">
+                        </div>
+                        <div class="form-group">
+                            <label>Slug (unique identifier)</label>
+                            <input type="text" name="slug" required placeholder="e.g. insurance">
+                        </div>
+                        <div style="display:flex; gap:1rem;">
+                            <div class="form-group" style="flex:1;">
+                                <label>Price (DH)</label>
+                                <input type="number" name="price" min="0" step="0.01" required placeholder="150">
+                            </div>
+                            <div class="form-group" style="flex:1;">
+                                <label>Charge Type</label>
+                                <select name="type">
+                                    <option value="per_day">Per Day</option>
+                                    <option value="flat">Flat Fee</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Description (Optional)</label>
+                            <input type="text" name="description" placeholder="e.g. Zero liability coverage for damages">
+                        </div>
+                        <button type="submit" class="btn-submit">Add Extra</button>
+                    </form>
+                </div>
+            </div>
         </div>
 
         <!-- tab 1: Fleet & Pricing -->
@@ -344,33 +439,68 @@
                     <thead>
                         <tr>
                             <th>Car Model</th>
+                            <th>Model Year</th>
                             <th>Category</th>
                             <th>Qty</th>
-                            <th>Overbook?</th>
                             <th>Base Rate</th>
                             <th>Monthly Exp</th>
+                            <th>Inspection / EOL</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($cars as $car)
+                        @php
+                            $modelYear  = $car->model_year;
+                            $modelMonth = $car->model_month ?? 1;
+                            $registrationDate = $modelYear ? \Carbon\Carbon::create($modelYear, $modelMonth, 1) : null;
+                            // Morocco: first technical inspection after 4 years, then every 2 years
+                            $firstInspection = $registrationDate ? $registrationDate->copy()->addYears(4) : null;
+                            $nextInspection  = null;
+                            if ($firstInspection) {
+                                $nextInspection = $firstInspection->isPast()
+                                    ? $firstInspection->copy()->addYears(ceil($firstInspection->diffInYears(now()) / 2) * 2)
+                                    : $firstInspection;
+                            }
+                            // Morocco: rental car mandatory end-of-service at 5 years
+                            $eolDate = $registrationDate ? $registrationDate->copy()->addYears(5) : null;
+                            $eolDays = $eolDate ? now()->diffInDays($eolDate, false) : null;
+                            $inspDays = $nextInspection ? now()->diffInDays($nextInspection, false) : null;
+                        @endphp
                         <tr>
                             <td><strong>{{ $car->brand }} {{ $car->model }}</strong></td>
+                            <td>
+                                @if($modelYear)
+                                    {{ $modelYear }}/{{ str_pad($modelMonth, 2, '0', STR_PAD_LEFT) }}
+                                @else
+                                    <span style="color:#94a3b8;">—</span>
+                                @endif
+                            </td>
                             <td>{{ $car->category }}</td>
                             <td>{{ $car->quantity }}</td>
-                            <td>
-                                <span class="badge" style="background-color: {{ $car->allow_overbooking ? '#d1fae5; color: #065f46;' : '#f1f5f9; color: #475569;' }}">
-                                    {{ $car->allow_overbooking ? 'Yes' : 'No' }}
-                                </span>
-                            </td>
                             <td>{{ $car->base_price }} DH</td>
                             <td>
                                 <span style="font-weight:600; color: #ef4444;">
                                     {{ $car->loan_cost + $car->insurance_cost + $car->maintenance_cost + $car->fuel_cost + $car->other_cost }} DH
                                 </span>
                             </td>
+                            <td style="font-size:0.78rem; min-width:140px;">
+                                @if($nextInspection)
+                                    <div style="color: {{ $inspDays !== null && $inspDays <= 60 ? '#ef4444' : ($inspDays !== null && $inspDays <= 180 ? '#f59e0b' : '#10b981') }}; font-weight:600;">
+                                        🔧 {{ $nextInspection->format('M Y') }}
+                                        @if($inspDays !== null && $inspDays <= 60)<span style="font-size:0.7rem;"> ⚠️ Soon</span>@endif
+                                    </div>
+                                @endif
+                                @if($eolDate)
+                                    <div style="color: {{ $eolDays !== null && $eolDays <= 90 ? '#ef4444' : ($eolDays !== null && $eolDays <= 365 ? '#f59e0b' : '#64748b') }}; margin-top:2px;">
+                                        🚫 EOL: {{ $eolDate->format('M Y') }}
+                                        @if($eolDays !== null && $eolDays <= 90)<span style="font-size:0.7rem;"> ⚠️ Retire</span>@endif
+                                    </div>
+                                @endif
+                                @if(!$modelYear)<span style="color:#94a3b8;">No date set</span>@endif
+                            </td>
                             <td>
-                                <a href="#" onclick="openEditModal({{ json_encode($car) }})" style="color: #c5a059; margin-right: 0.5rem; text-decoration: none; font-weight: 600;">Edit</a>
+                                <a href="#" id="btn-edit-car-{{ $car->id }}" onclick="openEditModal({{ json_encode($car) }})" style="color: #c5a059; margin-right: 0.5rem; text-decoration: none; font-weight: 600;">Edit</a>
                                 <form action="/{{ $locale }}/admin/cars/{{ $car->id }}" method="POST" onsubmit="return confirm('Remove vehicle from database?')" style="display:inline;">
                                     @csrf
                                     @method('DELETE')
@@ -429,6 +559,22 @@
                         <div class="form-group" style="flex: 1;">
                             <label>Base Price per Day (DH)</label>
                             <input type="number" name="base_price" placeholder="350" required>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Model Year <span style="font-size:0.72rem; color:var(--text-muted);">(for inspection tracking)</span></label>
+                            <input type="number" name="model_year" min="2000" max="{{ date('Y') }}" placeholder="{{ date('Y') }}">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Model Month</label>
+                            <select name="model_month">
+                                <option value="">— Select —</option>
+                                @foreach(['Jan'=>1,'Feb'=>2,'Mar'=>3,'Apr'=>4,'May'=>5,'Jun'=>6,'Jul'=>7,'Aug'=>8,'Sep'=>9,'Oct'=>10,'Nov'=>11,'Dec'=>12] as $mn => $mv)
+                                <option value="{{ $mv }}">{{ $mn }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
 
@@ -633,14 +779,19 @@
                             <label>Description</label>
                             <input type="text" name="description" placeholder="e.g. Brake pads replacement Dacia" required>
                         </div>
-                        <div style="display: flex; gap: 1rem;">
-                            <div class="form-group" style="flex: 1;">
+                        <div style="display: flex; gap: 1rem; align-items: flex-end;">
+                            <div class="form-group" style="flex: 2;">
                                 <label>Amount (DH)</label>
                                 <input type="number" step="0.01" name="amount" placeholder="e.g. 450" required>
                             </div>
-                            <div class="form-group" style="flex: 1;">
+                            <div class="form-group" style="flex: 2;">
                                 <label>Date Spent</label>
                                 <input type="date" name="spent_at" value="{{ date('Y-m-d') }}" required>
+                            </div>
+                            <div class="form-group" style="flex: 1; padding-bottom: 0.75rem;">
+                                <label style="display: flex; gap: 0.5rem; align-items: center; cursor: pointer; font-size: 0.8rem; font-weight: 600;">
+                                    <input type="checkbox" name="is_recurring" value="1" style="width: auto;"> Recurring?
+                                </label>
                             </div>
                         </div>
                         <button type="submit" class="btn-submit">Log Expense</button>
@@ -671,7 +822,12 @@
                         @endphp
                         <tr>
                             <td>{{ $exp->spent_at->format('Y-m-d') }}</td>
-                            <td><strong>{{ $exp->description }}</strong></td>
+                            <td>
+                                <strong>{{ $exp->description }}</strong>
+                                @if($exp->is_recurring)
+                                    <span style="font-size: 0.65rem; background: #e0f2fe; color: #0369a1; padding: 0.1rem 0.35rem; border-radius: 4px; font-weight: 700; margin-left: 0.5rem;">🔁 RECURRING</span>
+                                @endif
+                            </td>
                             <td>
                                 <span class="badge" style="background: #f1f5f9; color: var(--text-dark); text-transform: uppercase;">
                                     {{ $exp->category }}
@@ -735,7 +891,18 @@
                     @foreach($bookings as $booking)
                     <tr>
                         <td><code>{{ $booking->booking_reference }}</code></td>
-                        <td>{{ $booking->customer_name }}</td>
+                        <td>
+                            {{ $booking->customer_name }}
+                            @if($booking->extras && count($booking->extras) > 0)
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.2rem; margin-top: 0.25rem;">
+                                    @foreach($booking->extras as $extra)
+                                        <span style="font-size: 0.65rem; padding: 0.1rem 0.3rem; background: #e0f2fe; color: #0369a1; border-radius: 4px; font-weight: bold; text-transform: uppercase;">
+                                            {{ $extra == 'insurance' ? 'CDW' : $extra }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </td>
                         <td><a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $booking->customer_phone) }}" target="_blank">{{ $booking->customer_phone }}</a></td>
                         <td>{{ $booking->car ? $booking->car->brand . ' ' . $booking->car->model : 'Deleted Car' }}</td>
                         <td>{{ $booking->pickup_datetime->format('Y-m-d H:i') }}</td>
@@ -752,15 +919,18 @@
                             </span>
                         </td>
                         <td>
-                            <form action="/{{ $locale }}/admin/bookings/{{ $booking->id }}/status" method="POST" style="display:flex; gap:0.25rem;">
-                                @csrf
-                                <select name="status" style="padding: 0.2rem; font-size:0.75rem;">
-                                    <option value="pending" {{ $booking->status == 'pending' ? 'selected' : '' }}>Pending</option>
-                                    <option value="confirmed" {{ $booking->status == 'confirmed' ? 'selected' : '' }}>Confirm</option>
-                                    <option value="cancelled" {{ $booking->status == 'cancelled' ? 'selected' : '' }}>Cancel</option>
-                                </select>
-                                <button type="submit" style="padding:0.2rem 0.4rem; font-size:0.75rem; background:#cbd5e1; border:none; cursor:pointer; border-radius:4px;">Go</button>
-                            </form>
+                            <div style="display:flex; gap:0.5rem; align-items:center;">
+                                <form action="/{{ $locale }}/admin/bookings/{{ $booking->id }}/status" method="POST" style="display:flex; gap:0.25rem; margin:0;">
+                                    @csrf
+                                    <select name="status" style="padding: 0.2rem; font-size:0.75rem;">
+                                        <option value="pending" {{ $booking->status == 'pending' ? 'selected' : '' }}>Pending</option>
+                                        <option value="confirmed" {{ $booking->status == 'confirmed' ? 'selected' : '' }}>Confirm</option>
+                                        <option value="cancelled" {{ $booking->status == 'cancelled' ? 'selected' : '' }}>Cancel</option>
+                                    </select>
+                                    <button type="submit" style="padding:0.2rem 0.4rem; font-size:0.75rem; background:#cbd5e1; border:none; cursor:pointer; border-radius:4px;">Go</button>
+                                </form>
+                                <button onclick="openEditBookingModal({{ json_encode($booking) }})" style="padding:0.20rem 0.5rem; font-size:0.75rem; background:#c5a059; color:white; border:none; cursor:pointer; border-radius:4px; font-weight:600; white-space:nowrap;">Edit Details</button>
+                            </div>
                         </td>
                     </tr>
                     @endforeach
@@ -768,6 +938,55 @@
             </table>
         </div>
         </div> <!-- End of bookings-tab -->
+
+        <!-- tab 5: Contact Messages -->
+        <div id="contacts-tab" class="tab-content" style="display: none;">
+            <div class="panel" style="margin-bottom: 5rem;">
+                <h2>Customer Contact Messages</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Message</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($contactRequests as $req)
+                        <tr>
+                            <td>{{ $req->created_at->format('Y-m-d H:i') }}</td>
+                            <td><strong>{{ $req->name }}</strong></td>
+                            <td><a href="mailto:{{ $req->email }}">{{ $req->email }}</a></td>
+                            <td>
+                                @if($req->phone)
+                                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $req->phone) }}" target="_blank">{{ $req->phone }}</a>
+                                @else
+                                    <span style="color:var(--text-muted); font-style:italic;">None</span>
+                                @endif
+                            </td>
+                            <td style="max-width: 350px; white-space: normal; word-wrap: break-word;">{{ $req->message }}</td>
+                            <td>
+                                <form action="/{{ $locale }}/admin/contact-requests/{{ $req->id }}" method="POST" onsubmit="return confirm('Delete this contact message request?')" style="display:inline;">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" style="color:red; background:none; border:none; cursor:pointer; font-weight:600;">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        @endforeach
+                        @if($contactRequests->isEmpty())
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-muted); font-style: italic;">No contact requests yet.</td>
+                        </tr>
+                        @endif
+                    </tbody>
+                </table>
+            </div>
+        </div> <!-- End of contacts-tab -->
+
 
     </div>
 
@@ -825,6 +1044,21 @@
                     <label style="display:flex; gap:0.5rem; align-items:center; font-size: 0.8rem; font-weight:600; cursor:pointer;">
                         <input type="checkbox" name="allow_overbooking" id="edit_allow_overbooking" style="width:auto;"> Allow Overbooking (Overpass limits)
                     </label>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Model Year <span style="font-size:0.72rem; color:var(--text-muted);">(for inspection tracking)</span></label>
+                        <input type="number" name="model_year" id="edit_model_year" min="2000" max="{{ date('Y') }}" placeholder="{{ date('Y') }}">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Model Month</label>
+                        <select name="model_month" id="edit_model_month">
+                            <option value="">— Select —</option>
+                            @foreach(['Jan'=>1,'Feb'=>2,'Mar'=>3,'Apr'=>4,'May'=>5,'Jun'=>6,'Jul'=>7,'Aug'=>8,'Sep'=>9,'Oct'=>10,'Nov'=>11,'Dec'=>12] as $mn => $mv)
+                            <option value="{{ $mv }}">{{ $mn }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Static Image URL path</label>
@@ -926,6 +1160,23 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label>Optional Extras & Add-ons</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; background: #fafafa; padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 1rem;">
+                        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; font-weight:600; cursor:pointer; color:#333; margin:0;">
+                            <input type="checkbox" name="extras[]" value="insurance" style="width:auto; cursor:pointer;"> Full Insurance (CDW)
+                        </label>
+                        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; font-weight:600; cursor:pointer; color:#333; margin:0;">
+                            <input type="checkbox" name="extras[]" value="gps" style="width:auto; cursor:pointer;"> GPS Navigation
+                        </label>
+                        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; font-weight:600; cursor:pointer; color:#333; margin:0;">
+                            <input type="checkbox" name="extras[]" value="child_seat" style="width:auto; cursor:pointer;"> Child Safety Seat
+                        </label>
+                        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; font-weight:600; cursor:pointer; color:#333; margin:0;">
+                            <input type="checkbox" name="extras[]" value="additional_driver" style="width:auto; cursor:pointer;"> Additional Driver
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label>Booking Status</label>
                     <select name="status">
                         <option value="pending">Pending</option>
@@ -934,6 +1185,97 @@
                     </select>
                 </div>
                 <button type="submit" class="btn-submit">Save Booking</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Booking Modal -->
+    <div id="editBookingModal" class="modal">
+        <div class="modal-content">
+            <button onclick="closeEditBookingModal()" class="modal-close">&times;</button>
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary-dark); font-family: 'Outfit', sans-serif;">Edit Booking Details</h2>
+            <form id="editBookingForm" method="POST" action="">
+                @csrf
+                <div class="form-group">
+                    <label>Select Car Model</label>
+                    <select name="car_id" id="edit_booking_car_id" required>
+                        @foreach($cars as $car)
+                        <option value="{{ $car->id }}">{{ $car->brand }} {{ $car->model }} (Rate: {{ $car->base_price }} DH/day)</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Customer Name</label>
+                    <input type="text" name="customer_name" id="edit_booking_customer_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Customer Email (Optional)</label>
+                    <input type="email" name="customer_email" id="edit_booking_customer_email">
+                </div>
+                <div class="form-group">
+                    <label>Customer Phone</label>
+                    <input type="tel" name="customer_phone" id="edit_booking_customer_phone" required>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Pickup Location</label>
+                        <input type="text" name="pickup_location" id="edit_booking_pickup_location" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Return Location</label>
+                        <input type="text" name="return_location" id="edit_booking_return_location" required>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Pickup Date & Time</label>
+                        <input type="datetime-local" name="pickup_datetime" id="edit_booking_pickup_datetime" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Return Date & Time</label>
+                        <input type="datetime-local" name="return_datetime" id="edit_booking_return_datetime" required>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Total Price (DH)</label>
+                        <input type="number" name="total_price" id="edit_booking_total_price" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Source</label>
+                        <select name="source" id="edit_booking_source">
+                            <option value="website">Website</option>
+                            <option value="whatsapp">WhatsApp</option>
+                            <option value="ota">OTA (Agency)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Optional Extras & Add-ons</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; background: #fafafa; padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); margin-bottom: 1rem;">
+                        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; font-weight:600; cursor:pointer; color:#333; margin:0;">
+                            <input type="checkbox" name="extras[]" value="insurance" id="edit_booking_extra_insurance" style="width:auto; cursor:pointer;"> Full Insurance (CDW)
+                        </label>
+                        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; font-weight:600; cursor:pointer; color:#333; margin:0;">
+                            <input type="checkbox" name="extras[]" value="gps" id="edit_booking_extra_gps" style="width:auto; cursor:pointer;"> GPS Navigation
+                        </label>
+                        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; font-weight:600; cursor:pointer; color:#333; margin:0;">
+                            <input type="checkbox" name="extras[]" value="child_seat" id="edit_booking_extra_child_seat" style="width:auto; cursor:pointer;"> Child Safety Seat
+                        </label>
+                        <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; font-weight:600; cursor:pointer; color:#333; margin:0;">
+                            <input type="checkbox" name="extras[]" value="additional_driver" id="edit_booking_extra_additional_driver" style="width:auto; cursor:pointer;"> Additional Driver
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Booking Status</label>
+                    <select name="status" id="edit_booking_status">
+                        <option value="pending">Pending</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-submit">Save Changes</button>
             </form>
         </div>
     </div>
@@ -957,6 +1299,10 @@
             document.getElementById('edit_ac').checked = car.ac == 1;
             document.getElementById('edit_allow_overbooking').checked = car.allow_overbooking == 1;
 
+            // Model year / month
+            document.getElementById('edit_model_year').value = car.model_year || '';
+            document.getElementById('edit_model_month').value = car.model_month || '';
+
             // Expenses
             document.getElementById('edit_loan_cost').value = car.loan_cost || 0;
             document.getElementById('edit_insurance_cost').value = car.insurance_cost || 0;
@@ -977,6 +1323,46 @@
 
         function closeManualBookingModal() {
             document.getElementById('manualBookingModal').style.display = 'none';
+        }
+
+        function openEditBookingModal(booking) {
+            document.getElementById('editBookingForm').action = '/' + locale + '/admin/bookings/update/' + booking.id;
+            document.getElementById('edit_booking_car_id').value = booking.car_id;
+            document.getElementById('edit_booking_customer_name').value = booking.customer_name;
+            document.getElementById('edit_booking_customer_email').value = booking.customer_email || '';
+            document.getElementById('edit_booking_customer_phone').value = booking.customer_phone;
+            document.getElementById('edit_booking_pickup_location').value = booking.pickup_location;
+            document.getElementById('edit_booking_return_location').value = booking.return_location;
+            
+            // Format datetimes to YYYY-MM-DDTHH:mm local representation
+            if (booking.pickup_datetime) {
+                const pickup = new Date(booking.pickup_datetime);
+                const offset = pickup.getTimezoneOffset();
+                const localPickup = new Date(pickup.getTime() - (offset*60*1000));
+                document.getElementById('edit_booking_pickup_datetime').value = localPickup.toISOString().slice(0, 16);
+            }
+            if (booking.return_datetime) {
+                const ret = new Date(booking.return_datetime);
+                const offset = ret.getTimezoneOffset();
+                const localReturn = new Date(ret.getTime() - (offset*60*1000));
+                document.getElementById('edit_booking_return_datetime').value = localReturn.toISOString().slice(0, 16);
+            }
+            
+            const extras = booking.extras || [];
+            document.getElementById('edit_booking_extra_insurance').checked = extras.includes('insurance');
+            document.getElementById('edit_booking_extra_gps').checked = extras.includes('gps');
+            document.getElementById('edit_booking_extra_child_seat').checked = extras.includes('child_seat');
+            document.getElementById('edit_booking_extra_additional_driver').checked = extras.includes('additional_driver');
+            
+            document.getElementById('edit_booking_total_price').value = booking.total_price;
+            document.getElementById('edit_booking_source').value = booking.source;
+            document.getElementById('edit_booking_status').value = booking.status;
+            
+            document.getElementById('editBookingModal').style.display = 'flex';
+        }
+
+        function closeEditBookingModal() {
+            document.getElementById('editBookingModal').style.display = 'none';
         }
 
         function openVisitsModal() {
@@ -1007,17 +1393,92 @@
             const editModal = document.getElementById('editCarModal');
             const manualModal = document.getElementById('manualBookingModal');
             const visitsModal = document.getElementById('visitsModal');
-            if (event.target == editModal) {
-                closeEditModal();
-            }
-            if (event.target == manualModal) {
-                closeManualBookingModal();
-            }
-            if (event.target == visitsModal) {
-                closeVisitsModal();
+            const editExtraModal = document.getElementById('editExtraModal');
+            if (event.target == editModal) closeEditModal();
+            if (event.target == manualModal) closeManualBookingModal();
+            if (event.target == visitsModal) closeVisitsModal();
+            if (event.target == editExtraModal) closeEditExtraModal();
+        }
+
+        // --- Revenue Month Filter ---
+        const revenueData = @json($revenueByMonth);
+
+        function updateRevenueDisplay() {
+            const select = document.getElementById('revenueMonthFilter');
+            const val = select.value;
+            const display = document.getElementById('revenueDisplay');
+            const sub = document.getElementById('revenueSubLabel');
+
+            if (val === '3') {
+                // Sum next 3 months (indices 0-2)
+                const total = revenueData.slice(0, 3).reduce((sum, m) => sum + m.revenue, 0);
+                display.innerText = total.toLocaleString('fr-FR') + ' DH';
+                sub.innerText = revenueData.slice(0, 3).map(m => m.label).join(' + ');
+            } else if (val === '6') {
+                const total = revenueData.reduce((sum, m) => sum + m.revenue, 0);
+                display.innerText = total.toLocaleString('fr-FR') + ' DH';
+                sub.innerText = '6-month total projection';
+            } else {
+                const idx = parseInt(val);
+                const m = revenueData[idx];
+                display.innerText = m.revenue.toLocaleString('fr-FR') + ' DH';
+                sub.innerText = m.label + ' — Confirmed bookings';
             }
         }
+
+        // --- Edit Extra Modal ---
+        function openEditExtraModal(extra) {
+            document.getElementById('editExtraForm').action = '/' + locale + '/admin/extras/update/' + extra.id;
+            document.getElementById('edit_extra_name').value = extra.name;
+            document.getElementById('edit_extra_slug').value = extra.slug;
+            document.getElementById('edit_extra_price').value = extra.price;
+            document.getElementById('edit_extra_type').value = extra.type;
+            document.getElementById('edit_extra_description').value = extra.description || '';
+            document.getElementById('editExtraModal').style.display = 'flex';
+        }
+
+        function closeEditExtraModal() {
+            document.getElementById('editExtraModal').style.display = 'none';
+        }
     </script>
+
+    <!-- Edit Extra Modal -->
+    <div id="editExtraModal" class="modal">
+        <div class="modal-content">
+            <button onclick="closeEditExtraModal()" class="modal-close">&times;</button>
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary-dark); font-family: 'Outfit', sans-serif;">Edit Optional Extra</h2>
+            <form id="editExtraForm" method="POST" action="">
+                @csrf
+                <div class="form-group">
+                    <label>Display Name</label>
+                    <input type="text" name="name" id="edit_extra_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Slug (unique identifier)</label>
+                    <input type="text" name="slug" id="edit_extra_slug" required>
+                </div>
+                <div style="display:flex; gap:1rem;">
+                    <div class="form-group" style="flex:1;">
+                        <label>Price (DH)</label>
+                        <input type="number" name="price" id="edit_extra_price" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Charge Type</label>
+                        <select name="type" id="edit_extra_type">
+                            <option value="per_day">Per Day</option>
+                            <option value="flat">Flat Fee</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description (Optional)</label>
+                    <input type="text" name="description" id="edit_extra_description">
+                </div>
+                <button type="submit" class="btn-submit">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
 
     <!-- Visitor Logs Modal -->
     <div id="visitsModal" class="modal">

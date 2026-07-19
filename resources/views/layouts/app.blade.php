@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     
     <!-- Dynamic SEO Titles and Descriptions -->
     <title>@yield('title', 'Car Airport Morocco - Rent a Car at Marrakech Airport')</title>
@@ -29,6 +30,7 @@ nav a{color:var(--text-white);text-decoration:none;font-weight:500;font-size:0.9
 nav a:hover{color:var(--accent-gold)}
 .header-actions{display:flex;align-items:center;gap:1.5rem}
 .lang-selector{color:var(--text-white);background:transparent;border:1px solid rgba(255,255,255,0.2);padding:0.4rem 0.8rem;border-radius:6px;cursor:pointer;font-size:0.85rem}
+.lang-selector option{background-color:var(--primary-blue);color:var(--text-white)}
 .booking-btn{background-color:transparent;border:1px solid var(--accent-gold);color:var(--text-white);padding:0.5rem 1.2rem;border-radius:8px;text-decoration:none;font-size:0.9rem;font-weight:600;transition:all 0.3s}
 .booking-btn:hover{background-color:var(--accent-gold);color:var(--primary-blue)}
 .hero{position:relative;background:linear-gradient(rgba(0,0,0,0.45),rgba(15,29,54,0.85)),url('/images/marrakech_bg.jpg') no-repeat center center;background-size:cover;min-height:480px;padding:5rem 1.5rem 10rem;color:var(--text-white);text-align:center;background-color:var(--primary-blue)}
@@ -123,6 +125,13 @@ footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem
 @media(max-width:991px){.search-grid{grid-template-columns:1fr 1fr}.footer-grid{grid-template-columns:1fr 1fr}.promo-testimonials{grid-template-columns:1fr}.hero h1{font-size:2.2rem}}
 @media(max-width:767px){.header-container{flex-direction:column;gap:1rem}nav ul{flex-wrap:wrap;justify-content:center;gap:1rem}.search-grid{grid-template-columns:1fr}.hero{padding:3rem 1.5rem 8rem}}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(37,211,102,0.5)}70%{box-shadow:0 0 0 15px rgba(37,211,102,0)}100%{box-shadow:0 0 0 0 rgba(37,211,102,0)}}
+/* ---- Filter Toolbar ---- */
+.filter-toolbar{display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;margin-bottom:2rem;padding:0.5rem 0}
+.filter-toolbar .filter-group{display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center}
+.filter-toolbar .filter-divider{width:1px;height:24px;background:var(--border-color);margin:0 0.5rem}
+.filter-btn{appearance:none;-webkit-appearance:none;display:inline-flex;align-items:center;background:#f1f5f9;border:1.5px solid #e2e8f0;color:#475569;padding:0.38rem 1rem;border-radius:30px;font-size:0.82rem;font-family:var(--font-body);font-weight:600;cursor:pointer;transition:all 0.2s ease;line-height:1.4;letter-spacing:0.01em;box-shadow:none;text-decoration:none;white-space:nowrap}
+.filter-btn:hover{background:#e0eaff;border-color:#94a3b8;color:var(--primary-blue)}
+.filter-btn.active{background:var(--primary-blue);color:#fff;border-color:var(--primary-blue);font-weight:700;box-shadow:0 3px 10px rgba(15,29,54,0.25)}
     </style>
     
     <!-- JSON-LD Structured Schema Markup for Search Snippets -->
@@ -151,19 +160,36 @@ footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem
             </nav>
             
             <div class="header-actions">
+                <!-- Currency Selector -->
+                <select class="lang-selector" id="currency-select" style="margin-right: 0.5rem;">
+                    <option value="EUR">💶 EUR (€)</option>
+                    <option value="MAD">🇲🇦 MAD (DH)</option>
+                </select>
+
                 <!-- Lang Selector -->
                 <select class="lang-selector" id="lang-select">
                     <option value="en" {{ $locale === 'en' ? 'selected' : '' }}>🇬🇧 English</option>
                     <option value="fr" {{ $locale === 'fr' ? 'selected' : '' }}>🇫🇷 Français</option>
                 </select>
                 
-                <a href="#search" class="booking-btn">My Booking</a>
+                <a href="#" onclick="openManageBookingModal(); return false;" class="booking-btn">{{ __('messages.my_booking') }}</a>
             </div>
         </div>
     </header>
 
     <!-- Main Content Area -->
     <main>
+        @if(session('success'))
+            <div style="max-width: 1200px; margin: 1.5rem auto 0 auto; padding: 1rem 1.5rem; background-color: #d1fae5; border-left: 4px solid #10b981; color: #065f46; border-radius: 6px; font-weight: 600; box-shadow: var(--shadow-sm);">
+                ✓ {{ session('success') }}
+            </div>
+        @endif
+        @if(session('error'))
+            <div style="max-width: 1200px; margin: 1.5rem auto 0 auto; padding: 1rem 1.5rem; background-color: #fee2e2; border-left: 4px solid #ef4444; color: #991b1b; border-radius: 6px; font-weight: 600; box-shadow: var(--shadow-sm);">
+                ✗ {{ session('error') }}
+            </div>
+        @endif
+
         @yield('content')
     </main>
 
@@ -237,7 +263,7 @@ footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                             <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
                         </svg>
-                        Marrakech Airport (RAK), Morocco
+                        <a href="https://maps.app.goo.gl/CBibZyc5L4ioDqkH7" target="_blank" rel="noopener" style="color: inherit; text-decoration: underline;">Marrakech Airport (RAK), Morocco</a>
                     </li>
                 </ul>
             </div>
@@ -248,7 +274,379 @@ footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem
         </div>
     </footer>
 
+    <!-- Manage Booking Modal (Public View) -->
+    <div id="manageBookingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; justify-content: center; align-items: center; padding: 1.5rem; backdrop-filter: blur(4px);">
+        <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 500px; width: 100%; position: relative; box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto;">
+            <button onclick="closeManageBookingModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+            
+            <!-- lookup view -->
+            <div id="bookingLookupSection">
+                <h3 style="font-family: var(--font-heading); margin-bottom: 0.5rem; color: var(--primary-blue); font-size: 1.5rem; font-weight: 700;">Manage Your Booking</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Enter your booking reference code to view or modify your reservation.</p>
+                
+                <div style="margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Booking Reference</label>
+                    <input type="text" id="lookupReference" placeholder="e.g. CAM-A1B2C3" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; outline: none; text-transform: uppercase;">
+                </div>
+                
+                <div id="lookupError" style="color: #dc3545; font-size: 0.85rem; margin-bottom: 1rem; display: none;"></div>
+                
+                <button onclick="retrieveBookingDetails()" style="background-color: var(--primary-blue); color: white; border: none; width: 100%; padding: 0.8rem; border-radius: 8px; font-weight: 700; cursor: pointer;">Retrieve Reservation</button>
+            </div>
+            
+            <!-- edit view -->
+            <div id="bookingEditSection" style="display: none;">
+                <h3 style="font-family: var(--font-heading); margin-bottom: 0.25rem; color: var(--primary-blue); font-size: 1.5rem; font-weight: 700;">Modify Booking</h3>
+                <div style="font-size: 0.85rem; color: var(--accent-gold); font-weight: 600; margin-bottom: 1.25rem;" id="editRefDisplay">Reference: CAM-XXXXXX</div>
+                
+                <form id="publicBookingEditForm" onsubmit="submitPublicBookingUpdate(event)">
+                    <input type="hidden" id="editBookingRef">
+                    
+                    <div style="margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.35rem;">
+                        <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Selected Car</label>
+                        <select id="editCarSelect" onchange="triggerPriceRecalculation()" style="width:100%; padding:0.6rem; border:1px solid var(--border-color); border-radius:8px;">
+                            <!-- populated dynamically -->
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.35rem;">
+                        <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Your Name</label>
+                        <input type="text" id="editCustomerName" required style="width:100%; padding:0.6rem; border:1px solid var(--border-color); border-radius:8px;">
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="flex:1; display: flex; flex-direction: column; gap: 0.35rem;">
+                            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Email</label>
+                            <input type="email" id="editCustomerEmail" required style="width:100%; padding:0.6rem; border:1px solid var(--border-color); border-radius:8px;">
+                        </div>
+                        <div style="flex:1; display: flex; flex-direction: column; gap: 0.35rem;">
+                            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Phone</label>
+                            <input type="tel" id="editCustomerPhone" required style="width:100%; padding:0.6rem; border:1px solid var(--border-color); border-radius:8px;">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="flex:1; display: flex; flex-direction: column; gap: 0.35rem;">
+                            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Pickup Location</label>
+                            <input type="text" id="editPickupLocation" required style="width:100%; padding:0.6rem; border:1px solid var(--border-color); border-radius:8px;">
+                        </div>
+                        <div style="flex:1; display: flex; flex-direction: column; gap: 0.35rem;">
+                            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Return Location</label>
+                            <input type="text" id="editReturnLocation" required style="width:100%; padding:0.6rem; border:1px solid var(--border-color); border-radius:8px;">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="flex:1; display: flex; flex-direction: column; gap: 0.35rem;">
+                            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Pickup Date/Time</label>
+                            <input type="datetime-local" id="editPickupDatetime" onchange="triggerPriceRecalculation()" required style="width:100%; padding:0.6rem; border:1px solid var(--border-color); border-radius:8px; font-size: 0.8rem;">
+                        </div>
+                        <div style="flex:1; display: flex; flex-direction: column; gap: 0.35rem;">
+                            <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Return Date/Time</label>
+                            <input type="datetime-local" id="editReturnDatetime" onchange="triggerPriceRecalculation()" required style="width:100%; padding:0.6rem; border:1px solid var(--border-color); border-radius:8px; font-size: 0.8rem;">
+                        </div>
+                    </div>
+
+                    <!-- Accessories / Extras Section -->
+                    @php
+                        $layoutExtras = \App\Models\Extra::all();
+                    @endphp
+                    <div style="margin-bottom: 1rem; background: #faf7f2; padding: 0.85rem; border-radius: 8px; border: 1px solid rgba(197,160,89,0.2); color: #333;">
+                        <h4 style="margin: 0 0 0.5rem 0; font-size: 0.85rem; font-weight: 700; color: var(--primary-blue);">Optional Extras & Add-ons</h4>
+                        <div style="display: flex; flex-direction: column; gap: 0.4rem;" id="publicEditExtrasContainer">
+                            @foreach($layoutExtras as $extra)
+                            <label style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; font-weight: 600; cursor: pointer; color: #475569; margin: 0;">
+                                <span>
+                                    @if($extra->slug == 'insurance') 🛡️ @elseif($extra->slug == 'gps') 🗺️ @elseif($extra->slug == 'child_seat') 👶 @else 👤 @endif
+                                    {{ $extra->name }} (+{{ round($extra->price) }} DH/{{ $extra->type == 'per_day' ? 'day' : 'flat' }})
+                                </span>
+                                <input type="checkbox" id="publicEditExtra_{{ $extra->slug }}" data-slug="{{ $extra->slug }}" onchange="triggerPriceRecalculation()" style="width: auto; cursor: pointer;">
+                            </label>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <!-- Pricing Info Display -->
+                    <div style="background: #faf7f2; padding: 1rem; border-radius: 8px; border: 1px solid rgba(197,160,89,0.2); margin-bottom: 1.5rem; text-align: center;">
+                        <span style="font-size: 0.8rem; color: var(--text-muted); font-weight:500;">Estimated Total Price:</span>
+                        <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary-blue);"><span id="editEstimatedPrice" class="price-val" data-base-mad="0">Calculating...</span> <span class="currency-label">DH</span> <span id="editEstimatedDays" style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal; margin-left: 0.25rem;"></span></div>
+                    </div>
+
+                    <div id="editError" style="color: #dc3545; font-size: 0.85rem; margin-bottom: 1rem; display: none;"></div>
+                    <div id="editSuccess" style="color: #28a745; font-size: 0.85rem; margin-bottom: 1rem; display: none;"></div>
+
+                    <div style="display: flex; gap: 1rem;">
+                        <button type="button" onclick="backToLookup()" style="flex: 1; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; background: white; cursor: pointer; font-weight: 600;">Back</button>
+                        <button type="submit" id="savePublicEditBtn" style="flex: 2; padding: 0.75rem; border: none; border-radius: 8px; background: var(--accent-gold); color: white; cursor: pointer; font-weight: 700;">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- App Script -->
     <script src="/js/app.js"></script>
+
+    <script>
+        // Language Select Redirect Helper
+        document.getElementById('lang-select')?.addEventListener('change', function() {
+            const newLocale = this.value;
+            const currentPath = window.location.pathname;
+            const segments = currentPath.split('/');
+            if (segments[1] === 'en' || segments[1] === 'fr') {
+                segments[1] = newLocale;
+            } else {
+                segments.splice(1, 0, newLocale);
+            }
+            window.location.pathname = segments.join('/');
+        });
+
+        // Manage Booking Modal logic
+        function openManageBookingModal() {
+            // Reset to lookup screen
+            document.getElementById('bookingLookupSection').style.display = 'block';
+            document.getElementById('bookingEditSection').style.display = 'none';
+            document.getElementById('lookupReference').value = '';
+            document.getElementById('lookupError').style.display = 'none';
+            document.getElementById('manageBookingModal').style.display = 'flex';
+        }
+
+        function closeManageBookingModal() {
+            document.getElementById('manageBookingModal').style.display = 'none';
+        }
+
+        function backToLookup() {
+            document.getElementById('bookingLookupSection').style.display = 'block';
+            document.getElementById('bookingEditSection').style.display = 'none';
+        }
+
+        async function retrieveBookingDetails() {
+            const ref = document.getElementById('lookupReference').value.trim();
+            const errDiv = document.getElementById('lookupError');
+            errDiv.style.display = 'none';
+
+            if (!ref) {
+                errDiv.innerText = 'Please enter your booking reference.';
+                errDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/${document.documentElement.lang || 'en'}/booking/retrieve?reference=${ref}`);
+                const data = await response.json();
+
+                if (data.status === 'error') {
+                    errDiv.innerText = data.message;
+                    errDiv.style.display = 'block';
+                    return;
+                }
+
+                // Populating edit view
+                const booking = data.booking;
+                document.getElementById('editBookingRef').value = booking.booking_reference;
+                document.getElementById('editRefDisplay').innerText = `Reference: ${booking.booking_reference} [${booking.status.toUpperCase()}]`;
+                document.getElementById('editCustomerName').value = booking.customer_name;
+                document.getElementById('editCustomerEmail').value = booking.customer_email;
+                document.getElementById('editCustomerPhone').value = booking.customer_phone;
+                document.getElementById('editPickupLocation').value = booking.pickup_location;
+                document.getElementById('editReturnLocation').value = booking.return_location || booking.pickup_location;
+                document.getElementById('editPickupDatetime').value = booking.pickup_datetime;
+                document.getElementById('editReturnDatetime').value = booking.return_datetime;
+
+                // Populate checkboxes dynamically
+                document.querySelectorAll('#publicEditExtrasContainer input[type="checkbox"]').forEach(cb => cb.checked = false);
+                const extras = booking.extras || [];
+                extras.forEach(slug => {
+                    const el = document.getElementById('publicEditExtra_' + slug);
+                    if (el) el.checked = true;
+                });
+
+                // Populate car select dropdown
+                const select = document.getElementById('editCarSelect');
+                select.innerHTML = '';
+                data.cars.forEach(car => {
+                    const opt = document.createElement('option');
+                    opt.value = car.id;
+                    opt.innerText = car.name;
+                    if (car.id === booking.car_id) opt.selected = true;
+                    select.appendChild(opt);
+                });
+
+                // Clear feedback messages
+                document.getElementById('editError').style.display = 'none';
+                document.getElementById('editSuccess').style.display = 'none';
+
+                // Display estimated price initially
+                const ep = document.getElementById('editEstimatedPrice');
+                ep.setAttribute('data-base-mad', booking.total_price);
+                ep.innerText = booking.total_price;
+                document.getElementById('editEstimatedDays').innerText = '';
+                if (typeof window.applyCurrency === 'function') {
+                    window.applyCurrency(localStorage.getItem('selected_currency') || 'EUR');
+                }
+
+                // Switch section views
+                document.getElementById('bookingLookupSection').style.display = 'none';
+                document.getElementById('bookingEditSection').style.display = 'block';
+
+            } catch (err) {
+                errDiv.innerText = 'Failed to load booking. Please try again.';
+                errDiv.style.display = 'block';
+            }
+        }
+
+        async function triggerPriceRecalculation() {
+            const carId = document.getElementById('editCarSelect').value;
+            const pickup = document.getElementById('editPickupDatetime').value;
+            const returnDt = document.getElementById('editReturnDatetime').value;
+            const priceDiv = document.getElementById('editEstimatedPrice');
+
+            if (!carId || !pickup || !returnDt) return;
+
+            priceDiv.innerText = 'Calculating...';
+
+            const extras = [];
+            document.querySelectorAll('#publicEditExtrasContainer input[type="checkbox"]').forEach(cb => {
+                if (cb.checked) {
+                    extras.push(cb.getAttribute('data-slug'));
+                }
+            });
+            
+            const extrasParam = extras.length > 0 ? `&extras=${extras.join(',')}` : '';
+
+            try {
+                const response = await fetch(`/${document.documentElement.lang || 'en'}/booking/recalculate?car_id=${carId}&pickup_datetime=${pickup}&return_datetime=${returnDt}${extrasParam}`);
+                const data = await response.json();
+                if (data.status === 'success') {
+                    priceDiv.setAttribute('data-base-mad', data.total_price);
+                    priceDiv.innerText = data.total_price;
+                    document.getElementById('editEstimatedDays').innerText = `(${data.days} days)`;
+                    if (typeof window.applyCurrency === 'function') {
+                        window.applyCurrency(localStorage.getItem('selected_currency') || 'EUR');
+                    }
+                } else {
+                    priceDiv.innerText = 'Invalid dates';
+                    document.getElementById('editEstimatedDays').innerText = '';
+                }
+            } catch (err) {
+                priceDiv.innerText = 'Error';
+                document.getElementById('editEstimatedDays').innerText = '';
+            }
+        }
+
+        async function submitPublicBookingUpdate(event) {
+            event.preventDefault();
+            const ref = document.getElementById('editBookingRef').value;
+            const carId = document.getElementById('editCarSelect').value;
+            const name = document.getElementById('editCustomerName').value;
+            const email = document.getElementById('editCustomerEmail').value;
+            const phone = document.getElementById('editCustomerPhone').value;
+            const location = document.getElementById('editPickupLocation').value;
+            const returnLoc = document.getElementById('editReturnLocation').value;
+            const pickup = document.getElementById('editPickupDatetime').value;
+            const returnDt = document.getElementById('editReturnDatetime').value;
+
+            const extras = [];
+            document.querySelectorAll('#publicEditExtrasContainer input[type="checkbox"]').forEach(cb => {
+                if (cb.checked) {
+                    extras.push(cb.getAttribute('data-slug'));
+                }
+            });
+
+            const errDiv = document.getElementById('editError');
+            const succDiv = document.getElementById('editSuccess');
+            const submitBtn = document.getElementById('savePublicEditBtn');
+
+            errDiv.style.display = 'none';
+            succDiv.style.display = 'none';
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Saving...';
+
+            try {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+                                  '{{ csrf_token() }}';
+
+                const response = await fetch(`/${document.documentElement.lang || 'en'}/booking/update-public`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        reference: ref,
+                        car_id: carId,
+                        customer_name: name,
+                        customer_email: email,
+                        customer_phone: phone,
+                        pickup_location: location,
+                        return_location: returnLoc,
+                        pickup_datetime: pickup,
+                        return_datetime: returnDt,
+                        extras: extras
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.status === 'error') {
+                    errDiv.innerText = data.message;
+                    errDiv.style.display = 'block';
+                } else if (response.ok) {
+                    succDiv.innerText = data.message;
+                    succDiv.style.display = 'block';
+                    document.getElementById('editEstimatedPrice').innerText = `${data.total_price} DH`;
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    errDiv.innerText = 'Something went wrong. Please check your dates.';
+                    errDiv.style.display = 'block';
+                }
+            } catch (err) {
+                errDiv.innerText = 'Connection error. Please try again.';
+                errDiv.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Save Changes';
+            }
+        }
+
+        // Currency conversion code
+        const exchangeRate = 11; // 1 EUR = 11 DH (MAD)
+
+        window.applyCurrency = function(currency) {
+            const elements = document.querySelectorAll('.price-val');
+            elements.forEach(el => {
+                const baseMad = parseFloat(el.getAttribute('data-base-mad'));
+                if (!isNaN(baseMad)) {
+                    if (currency === 'EUR') {
+                        el.innerText = Math.round(baseMad / exchangeRate);
+                    } else {
+                        el.innerText = Math.round(baseMad);
+                    }
+                }
+            });
+
+            const labels = document.querySelectorAll('.currency-label');
+            labels.forEach(el => {
+                el.innerText = currency === 'EUR' ? '€' : 'DH';
+            });
+        };
+
+        // Initialize currency selector
+        const curSelect = document.getElementById('currency-select');
+        if (curSelect) {
+            const savedCurrency = localStorage.getItem('selected_currency') || 'EUR';
+            curSelect.value = savedCurrency;
+            window.applyCurrency(savedCurrency);
+
+            curSelect.addEventListener('change', function() {
+                const selected = this.value;
+                localStorage.setItem('selected_currency', selected);
+                window.applyCurrency(selected);
+            });
+        }
+    </script>
 </body>
 </html>

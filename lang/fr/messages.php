@@ -50,4 +50,5 @@ return [
     'discover_more' => 'Découvrir Plus',
     'customer_says' => 'Ce que disent nos clients',
     'based_on' => 'Sur la base de 650+ avis',
+    'my_booking' => 'Ma Réservation',
 ];

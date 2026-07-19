@@ -12,7 +12,7 @@ class PricingEngine
      * Calculate total price for a car over a date range.
      * Handles seasonal pricing per day.
      */
-    public static function calculatePrice(Car $car, $startDateTime, $endDateTime)
+    public static function calculatePrice(Car $car, $startDateTime, $endDateTime, array $selectedExtras = [])
     {
         $start = Carbon::parse($startDateTime);
         $end = Carbon::parse($endDateTime);
@@ -43,18 +43,50 @@ class PricingEngine
             
             // Filter seasonal rules matching this day
             $dayRules = $seasonalPrices->filter(function ($rule) use ($currentDayDate) {
-                return $currentDayDate >= $rule->start_date && $currentDayDate <= $rule->end_date;
+                return $currentDayDate >= $rule->start_date->toDateString() && $currentDayDate <= $rule->end_date->toDateString();
             });
 
             $dayPrice = self::resolveDayPrice($car, $dayRules);
             $totalPrice += $dayPrice;
         }
 
+        $extrasPrice = self::calculateExtrasCost($selectedExtras, $days);
+
         return [
-            'total_price' => $totalPrice,
+            'car_price' => $totalPrice,
+            'extras_price' => $extrasPrice,
+            'total_price' => $totalPrice + $extrasPrice,
             'days' => $days,
             'average_daily_rate' => round($totalPrice / $days, 2)
         ];
+    }
+
+    /**
+     * Calculate cost of optional accessory extras.
+     */
+    public static function calculateExtrasCost(array $selectedExtras, $days)
+    {
+        $cost = 0;
+        $activeKeys = [];
+        foreach ($selectedExtras as $key => $value) {
+            if (is_numeric($key)) {
+                $activeKeys[] = $value;
+            } elseif ($value && $value !== 'false' && $value !== '0') {
+                $activeKeys[] = $key;
+            }
+        }
+
+        if (count($activeKeys) > 0) {
+            $extrasFromDb = \App\Models\Extra::whereIn('slug', $activeKeys)->get();
+            foreach ($extrasFromDb as $extra) {
+                if ($extra->type === 'per_day') {
+                    $cost += $extra->price * $days;
+                } else {
+                    $cost += $extra->price;
+                }
+            }
+        }
+        return $cost;
     }
 
     /**

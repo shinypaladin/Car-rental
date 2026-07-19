@@ -13,11 +13,13 @@ class Expense extends Model
         'description',
         'category',
         'amount',
+        'is_recurring',
         'spent_at',
     ];
 
     protected $casts = [
         'spent_at' => 'date',
         'amount' => 'float',
+        'is_recurring' => 'boolean',
     ];
 }
