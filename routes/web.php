@@ -22,7 +22,7 @@ Route::get('/', function (Request $request) {
 // Localized Route Group (English and French)
 Route::group([
     'prefix' => '{locale}',
-    'where' => ['locale' => 'en|fr'],
+    'where' => ['locale' => 'en|fr|de'],
     'middleware' => [SetLocale::class]
 ], function () {
     
@@ -94,6 +94,7 @@ Route::group([
         Route::post('/partner-sites', [AdminController::class, 'storePartnerSite'])->name('admin.partners.store');
         Route::post('/partner-sites/update/{id}', [AdminController::class, 'updatePartnerSite'])->name('admin.partners.update');
         Route::delete('/partner-sites/{id}', [AdminController::class, 'deletePartnerSite'])->name('admin.partners.delete');
+        Route::get('/partner-sites/{id}/companies', [\App\Http\Controllers\PartnerController::class, 'fetchCompanies'])->name('admin.partners.companies');
     });
 
     // Web DB installer (accessible at /en/install-db or /fr/install-db)

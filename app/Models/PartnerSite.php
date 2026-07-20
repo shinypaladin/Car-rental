@@ -12,10 +12,17 @@ class PartnerSite extends Model
         'api_key',
         'markup_percent',
         'active',
+        'display_order',
+        'category_markups',
+        'allowed_companies',
+        'allowed_brands',
     ];
 
     protected $casts = [
         'active' => 'boolean',
         'markup_percent' => 'float',
+        'category_markups' => 'array',
+        'allowed_companies' => 'array',
+        'allowed_brands' => 'array',
     ];
 }

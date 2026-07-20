@@ -65,8 +65,16 @@ class PartnerAggregator
                 }
 
                 foreach ($vehicles as $car) {
+                    // Determine markup percent based on category (Dynamic Commission Negotiation)
+                    $category = $car['category'] ?? 'Economy';
+                    $markupPercent = $partner->markup_percent; // fallback
+                    
+                    if (!empty($partner->category_markups) && isset($partner->category_markups[$category])) {
+                        $markupPercent = (float) $partner->category_markups[$category];
+                    }
+                    
                     // Apply the commission markup percentage to the daily rate and total price
-                    $multiplier = 1 + ($partner->markup_percent / 100);
+                    $multiplier = 1 + ($markupPercent / 100);
                     
                     $originalRate = (float) $car['rate_per_day'];
                     $originalTotal = (float) $car['total_price'];
@@ -76,6 +84,39 @@ class PartnerAggregator
 
                     // Generate a unique identifier: partner_{partner_id}_{original_vehicle_id}
                     $compositeId = "partner_{$partner->id}_{$car['vehicle_id']}";
+
+                    // Segregate Company/Supplier from Vehicle Brand
+                    $companyName = trim($car['company_name'] ?? $partner->name);
+                    $companyLogo = $car['company_logo'] ?? null;
+
+                    // Filter out vehicle by supplier company name if allowed_companies list is set
+                    if (!empty($partner->allowed_companies)) {
+                        $isAllowed = false;
+                        foreach ($partner->allowed_companies as $allowedCompany) {
+                            if (stripos($companyName, trim($allowedCompany)) !== false) {
+                                $isAllowed = true;
+                                break;
+                            }
+                        }
+                        if (!$isAllowed) {
+                            continue; // skip this car because its supplier company is not whitelisted
+                        }
+                    }
+
+                    // Filter out vehicle by brand name if allowed_brands list is set
+                    if (!empty($partner->allowed_brands)) {
+                        $isAllowedBrand = false;
+                        $vehicleBrand = trim($car['brand']);
+                        foreach ($partner->allowed_brands as $allowedBrand) {
+                            if (stripos($vehicleBrand, trim($allowedBrand)) !== false) {
+                                $isAllowedBrand = true;
+                                break;
+                            }
+                        }
+                        if (!$isAllowedBrand) {
+                            continue; // skip this car because its brand is not whitelisted
+                        }
+                    }
 
                     $allPartnerCars[] = [
                         'id' => $compositeId,
@@ -93,6 +134,8 @@ class PartnerAggregator
                         'partner_name' => $partner->name,
                         'partner_id' => $partner->id,
                         'partner_vehicle_id' => $car['vehicle_id'],
+                        'company_name' => $companyName,
+                        'company_logo' => $companyLogo,
                     ];
                 }
             } catch (\Exception $e) {

@@ -210,6 +210,7 @@ class AdminController extends Controller
             'quantity' => $request->quantity,
             'allow_overbooking' => $request->has('allow_overbooking'),
             'base_price' => $request->base_price,
+            'display_order' => $request->input('display_order', 99),
             'model_year' => $request->model_year,
             'model_month' => $request->model_month,
             'image_path' => $request->image_path ?: '/images/default.jpg',
@@ -232,24 +233,25 @@ class AdminController extends Controller
         $car = Car::findOrFail($id);
         
         $car->update([
-            'brand' => $request->brand,
-            'model' => $request->model,
-            'category' => $request->category,
-            'seats' => $request->seats,
-            'transmission' => $request->transmission,
-            'ac' => $request->has('ac'),
-            'quantity' => $request->quantity,
+            'brand'             => $request->brand,
+            'model'             => $request->model,
+            'category'          => $request->category,
+            'seats'             => $request->seats,
+            'transmission'      => $request->transmission,
+            'ac'                => $request->has('ac'),
+            'quantity'          => $request->quantity,
             'allow_overbooking' => $request->has('allow_overbooking'),
-            'base_price' => $request->base_price,
-            'model_year' => $request->model_year,
-            'model_month' => $request->model_month,
-            'image_path' => $request->image_path ?: $car->image_path,
-            'video_path' => $request->video_path ?: $car->video_path,
-            'loan_cost' => $request->loan_cost ?: 0,
-            'insurance_cost' => $request->insurance_cost ?: 0,
-            'maintenance_cost' => $request->maintenance_cost ?: 0,
-            'fuel_cost' => $request->fuel_cost ?: 0,
-            'other_cost' => $request->other_cost ?: 0,
+            'base_price'        => $request->base_price,
+            'display_order'     => $request->input('display_order', 99),
+            'model_year'        => $request->model_year,
+            'model_month'       => $request->model_month,
+            'image_path'        => $request->image_path ?: $car->image_path,
+            'video_path'        => $request->video_path ?: $car->video_path,
+            'loan_cost'         => $request->loan_cost ?: 0,
+            'insurance_cost'    => $request->insurance_cost ?: 0,
+            'maintenance_cost'  => $request->maintenance_cost ?: 0,
+            'fuel_cost'         => $request->fuel_cost ?: 0,
+            'other_cost'        => $request->other_cost ?: 0,
         ]);
 
         return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Car updated successfully.');
@@ -467,8 +469,32 @@ class AdminController extends Controller
                 'extras' => $request->input('extras', []),
             ]);
 
+            // Send confirmation email
+            try {
+                \Illuminate\Support\Facades\Mail::to($booking->customer_email)
+                    ->send(new \App\Mail\BookingConfirmationMail($booking));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to send booking confirmation email for partner: " . $e->getMessage());
+            }
+
+            // Format WhatsApp text for partner booking
+            $partnerMsg = "Hello Car Airport Morocco! 🚗\n";
+            $partnerMsg .= "I would like to confirm my partner reservation request.\n\n";
+            $partnerMsg .= "Booking Ref: *" . $booking->booking_reference . "*\n";
+            $partnerMsg .= "Name: " . $booking->customer_name . "\n";
+            $partnerMsg .= "Phone: " . $booking->customer_phone . "\n";
+            $partnerMsg .= "Car: " . $matchedCar['brand'] . " " . $matchedCar['model'] . "\n";
+            $partnerMsg .= "Pickup: " . $booking->pickup_location . " (" . $booking->pickup_datetime->format('Y-m-d H:i') . ")\n";
+            $partnerMsg .= "Return: " . $booking->return_location . " (" . $booking->return_datetime->format('Y-m-d H:i') . ")\n";
+            $partnerMsg .= "Total Price: *" . $booking->total_price . " DH*\n\n";
+            $partnerMsg .= "Please let me know how to proceed. Thank you!";
+            $whatsappUrl = "https://wa.me/212600988632?text=" . urlencode($partnerMsg);
+
             return redirect()->route('home', ['locale' => $locale])
-                ->with('success', 'Booking requested successfully! Partner Reference: ' . $booking->booking_reference);
+                ->with('success', 'Booking requested successfully! Partner Reference: ' . $booking->booking_reference)
+                ->with('whatsapp_redirect_url', $whatsappUrl)
+                ->with('last_booking_reference', $booking->booking_reference)
+                ->with('last_booking_car_name', $matchedCar['brand'] . ' ' . $matchedCar['model']);
         }
 
         // Local car booking validation and process
@@ -517,8 +543,35 @@ class AdminController extends Controller
             'extras' => $selectedExtras,
         ]);
 
+        // Send confirmation email
+        try {
+            \Illuminate\Support\Facades\Mail::to($booking->customer_email)
+                ->send(new \App\Mail\BookingConfirmationMail($booking));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to send booking confirmation email: " . $e->getMessage());
+        }
+
+        // Format WhatsApp text for local booking
+        $localMsg = "Hello Car Airport Morocco! 🚗\n";
+        $localMsg .= "I would like to confirm my reservation request.\n\n";
+        $localMsg .= "Booking Ref: *" . $booking->booking_reference . "*\n";
+        $localMsg .= "Name: " . $booking->customer_name . "\n";
+        $localMsg .= "Phone: " . $booking->customer_phone . "\n";
+        $localMsg .= "Car: " . $car->brand . " " . $car->model . "\n";
+        $localMsg .= "Pickup: " . $booking->pickup_location . " (" . $pickupDt->format('Y-m-d H:i') . ")\n";
+        $localMsg .= "Return: " . $booking->return_location . " (" . $returnDt->format('Y-m-d H:i') . ")\n";
+        if (!empty($selectedExtras)) {
+            $localMsg .= "Extras: " . implode(', ', $selectedExtras) . "\n";
+        }
+        $localMsg .= "Total Price: *" . $booking->total_price . " DH*\n\n";
+        $localMsg .= "Please let me know how to proceed. Thank you!";
+        $whatsappUrl = "https://wa.me/212600988632?text=" . urlencode($localMsg);
+
         return redirect()->route('home', ['locale' => $locale])
-            ->with('success', 'Booking requested successfully! Reference: ' . $booking->booking_reference);
+            ->with('success', 'Booking requested successfully! Reference: ' . $booking->booking_reference)
+            ->with('whatsapp_redirect_url', $whatsappUrl)
+            ->with('last_booking_reference', $booking->booking_reference)
+            ->with('last_booking_car_name', $car->brand . ' ' . $car->model);
     }
 
     /**
@@ -683,12 +736,33 @@ class AdminController extends Controller
             'markup_percent' => 'required|numeric|min:0|max:100',
         ]);
 
+        $categoryMarkups = [
+            'Economy' => (float) $request->input('markup_economy', $request->markup_percent),
+            'SUV'     => (float) $request->input('markup_suv', $request->markup_percent),
+            'Van'     => (float) $request->input('markup_van', $request->markup_percent),
+            'Luxury'  => (float) $request->input('markup_luxury', $request->markup_percent),
+        ];
+
+        // Format allowed companies and brands array lists
+        $allowed = null;
+        if ($request->has('allowed_companies_csv')) {
+            $allowed = array_filter(array_map('trim', explode(',', $request->allowed_companies_csv)));
+        }
+        $allowedBrands = null;
+        if ($request->has('allowed_brands_csv')) {
+            $allowedBrands = array_filter(array_map('trim', explode(',', $request->allowed_brands_csv)));
+        }
+
         \App\Models\PartnerSite::create([
-            'name' => $request->name,
-            'api_url' => $request->api_url,
-            'api_key' => $request->api_key,
-            'markup_percent' => $request->markup_percent,
-            'active' => true,
+            'name'             => $request->name,
+            'api_url'          => $request->api_url,
+            'api_key'          => $request->api_key,
+            'markup_percent'   => $request->markup_percent,
+            'active'           => true,
+            'display_order'    => $request->input('display_order', 99),
+            'category_markups' => $categoryMarkups,
+            'allowed_companies'=> $allowed,
+            'allowed_brands'   => $allowedBrands,
         ]);
 
         return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Partner site added successfully.');
@@ -706,12 +780,32 @@ class AdminController extends Controller
             'markup_percent' => 'required|numeric|min:0|max:100',
         ]);
 
+        $categoryMarkups = [
+            'Economy' => (float) $request->input('markup_economy', $request->markup_percent),
+            'SUV'     => (float) $request->input('markup_suv', $request->markup_percent),
+            'Van'     => (float) $request->input('markup_van', $request->markup_percent),
+            'Luxury'  => (float) $request->input('markup_luxury', $request->markup_percent),
+        ];
+
+        $allowed = null;
+        if ($request->has('allowed_companies_csv')) {
+            $allowed = array_filter(array_map('trim', explode(',', $request->allowed_companies_csv)));
+        }
+        $allowedBrands = null;
+        if ($request->has('allowed_brands_csv')) {
+            $allowedBrands = array_filter(array_map('trim', explode(',', $request->allowed_brands_csv)));
+        }
+
         $partner = \App\Models\PartnerSite::findOrFail($id);
         $partner->update([
-            'name' => $request->name,
-            'api_url' => $request->api_url,
-            'api_key' => $request->api_key,
-            'markup_percent' => $request->markup_percent,
+            'name'             => $request->name,
+            'api_url'          => $request->api_url,
+            'api_key'          => $request->api_key,
+            'markup_percent'   => $request->markup_percent,
+            'display_order'    => $request->input('display_order', 99),
+            'category_markups' => $categoryMarkups,
+            'allowed_companies'=> $allowed,
+            'allowed_brands'   => $allowedBrands,
         ]);
 
         return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Partner site updated successfully.');

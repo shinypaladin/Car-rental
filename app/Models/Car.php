@@ -28,6 +28,7 @@ class Car extends Model
         'maintenance_cost',
         'fuel_cost',
         'other_cost',
+        'display_order',
     ];
 
     /**

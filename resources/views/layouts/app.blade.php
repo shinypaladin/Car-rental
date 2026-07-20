@@ -33,9 +33,39 @@
     
     <!-- Inline CSS — proxy-safe, zero dependency on asset serving -->
     <style>
-:root{--primary-blue:#0f1d36;--primary-blue-light:#1b2f52;--accent-gold:#c5a059;--accent-gold-hover:#b08c48;--text-dark:#222222;--text-muted:#666666;--text-white:#ffffff;--bg-light:#f8fafc;--bg-white:#ffffff;--border-color:#e2e8f0;--shadow-sm:0 2px 4px rgba(0,0,0,0.05);--shadow-md:0 4px 12px rgba(0,0,0,0.08);--shadow-lg:0 10px 25px rgba(15,29,54,0.1);--font-heading:'Outfit',sans-serif;--font-body:'Inter',sans-serif}
+:root{
+    --primary-blue:#0f1d36;
+    --primary-blue-light:#1b2f52;
+    --accent-gold:#c5a059;
+    --accent-gold-hover:#b08c48;
+    --text-dark:#222222;
+    --text-muted:#666666;
+    --text-white:#ffffff;
+    --bg-light:#f8fafc;
+    --bg-white:#ffffff;
+    --border-color:#e2e8f0;
+    --shadow-sm:0 2px 4px rgba(0,0,0,0.05);
+    --shadow-md:0 4px 12px rgba(0,0,0,0.08);
+    --shadow-lg:0 10px 25px rgba(15,29,54,0.1);
+    --font-heading:'Outfit',sans-serif;
+    --font-body:'Inter',sans-serif;
+}
+
+[data-theme="dark"] {
+    --primary-blue:#080f1d;
+    --primary-blue-light:#0f1d36;
+    --text-dark:#f1f5f9;
+    --text-muted:#94a3b8;
+    --bg-light:#0f172a;
+    --bg-white:#1e293b;
+    --border-color:#334155;
+    --shadow-sm:0 2px 4px rgba(0,0,0,0.2);
+    --shadow-md:0 4px 12px rgba(0,0,0,0.3);
+    --shadow-lg:0 10px 25px rgba(0,0,0,0.4);
+}
+
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{font-family:var(--font-body);background-color:var(--bg-light);color:var(--text-dark);line-height:1.6;overflow-x:hidden;width:100%;position:relative}
+html,body{font-family:var(--font-body);background-color:var(--bg-light);color:var(--text-dark);line-height:1.6;overflow-x:hidden;width:100%;position:relative;transition:background-color 0.3s, color 0.3s;}
 header{background-color:rgba(15,29,54,0.95);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,0.1);position:sticky;top:0;z-index:1000}
 .header-container{max-width:1200px;margin:0 auto;padding:1rem 1.5rem;display:flex;justify-content:space-between;align-items:center}
 .logo img{height:45px;object-fit:contain}
@@ -44,7 +74,8 @@ nav a{color:var(--text-white);text-decoration:none;font-weight:500;font-size:0.9
 nav a:hover{color:var(--accent-gold)}
 .header-actions{display:flex;align-items:center;gap:1.5rem}
 .lang-selector{color:var(--text-white);background:transparent;border:1px solid rgba(255,255,255,0.2);padding:0.4rem 0.8rem;border-radius:6px;cursor:pointer;font-size:0.85rem}
-.lang-selector option{background-color:var(--primary-blue);color:var(--text-white)}
+.lang-selector option{background-color: #0f1d36; color: #ffffff;}
+[data-theme="dark"] .lang-selector option {background-color: #0f172a; color: #f1f5f9;}
 .booking-btn{background-color:transparent;border:1px solid var(--accent-gold);color:var(--text-white);padding:0.5rem 1.2rem;border-radius:8px;text-decoration:none;font-size:0.9rem;font-weight:600;transition:all 0.3s}
 .booking-btn:hover{background-color:var(--accent-gold);color:var(--primary-blue)}
 .hero{position:relative;background:linear-gradient(rgba(0,0,0,0.45),rgba(15,29,54,0.85)),url('/images/marrakech_bg.jpg') no-repeat center center;background-size:cover;min-height:480px;padding:5rem 1.5rem 10rem;color:var(--text-white);text-align:center;background-color:var(--primary-blue)}
@@ -68,8 +99,8 @@ nav a:hover{color:var(--accent-gold)}
 .search-widget-footer div{display:flex;align-items:center;gap:0.5rem}
 .section-container{max-width:1200px;margin:0 auto 5rem;padding:0 1.5rem}
 .section-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:2rem}
-.section-header h2{font-family:var(--font-heading);font-size:2.2rem;font-weight:700;color:var(--primary-blue)}
-.view-all-link{color:var(--primary-blue);text-decoration:none;font-weight:600;font-size:0.95rem;display:flex;align-items:center;gap:0.5rem;transition:color 0.3s}
+.section-header h2{font-family:var(--font-heading);font-size:2.2rem;font-weight:700;color:var(--text-dark)}
+.view-all-link{color:var(--text-dark);text-decoration:none;font-weight:600;font-size:0.95rem;display:flex;align-items:center;gap:0.5rem;transition:color 0.3s}
 .view-all-link:hover{color:var(--accent-gold)}
 .cars-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:2rem}
 .car-card{background-color:var(--bg-white);border-radius:12px;overflow:hidden;box-shadow:var(--shadow-sm);border:1px solid var(--border-color);transition:transform 0.3s,box-shadow 0.3s;display:flex;flex-direction:column}
@@ -82,30 +113,30 @@ nav a:hover{color:var(--accent-gold)}
 .wishlist-btn{position:absolute;top:10px;right:10px;background-color:rgba(255,255,255,0.8);border:none;width:30px;height:30px;border-radius:50%;display:flex;justify-content:center;align-items:center;cursor:pointer;z-index:5}
 .car-details{padding:1.5rem;flex-grow:1;display:flex;flex-direction:column}
 .car-title-row{margin-bottom:0.25rem}
-.car-title-row h3{font-family:var(--font-heading);font-size:1.25rem;font-weight:700;color:var(--primary-blue)}
+.car-title-row h3{font-family:var(--font-heading);font-size:1.25rem;font-weight:700;color:var(--text-dark)}
 .car-subtitle{font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem}
 .car-specs{display:flex;gap:1rem;font-size:0.8rem;color:var(--text-muted);margin-bottom:1.5rem;flex-wrap:wrap}
 .spec-item{display:flex;align-items:center;gap:0.25rem}
 .car-price-row{display:flex;justify-content:space-between;align-items:center;margin-top:auto;border-top:1px solid var(--border-color);padding-top:1rem;gap:1rem}
 .price-box{display:flex;flex-direction:column}
-.price-amount{font-size:1.4rem;font-weight:800;color:var(--primary-blue);line-height:1}
+.price-amount{font-size:1.4rem;font-weight:800;color:var(--text-dark);line-height:1}
 .price-amount span{font-size:0.8rem;color:var(--text-muted);font-weight:400}
 .action-buttons{display:flex;flex-direction:column;gap:0.5rem;width:100%}
 .book-btn{background-color:var(--primary-blue);color:var(--text-white);text-align:center;padding:0.6rem 1rem;border-radius:6px;text-decoration:none;font-size:0.85rem;font-weight:700;transition:background-color 0.3s}
 .book-btn:hover{background-color:var(--primary-blue-light)}
 .whatsapp-btn{background-color:#25d366;color:var(--text-white);text-align:center;padding:0.6rem 1rem;border-radius:6px;text-decoration:none;font-size:0.85rem;font-weight:700;transition:background-color 0.3s;display:flex;justify-content:center;align-items:center;gap:0.5rem}
 .whatsapp-btn:hover{background-color:#20ba5a}
-.why-choose{background-color:var(--bg-white);padding:5rem 0;border-top:1px solid var(--border-color);border-bottom:1px solid var(--border-color)}
+.why-choose{background-color:var(--bg-light);padding:5rem 0;border-top:1px solid var(--border-color);border-bottom:1px solid var(--border-color)}
 .why-choose-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2.5rem}
 .why-card{text-align:center;padding:1rem}
-.why-icon{width:60px;height:60px;border-radius:50%;background-color:#faf7f2;border:1px solid rgba(197,160,89,0.2);display:flex;justify-content:center;align-items:center;margin:0 auto 1.5rem;font-size:1.5rem}
-.why-card h3{font-family:var(--font-heading);font-size:1.2rem;font-weight:700;margin-bottom:0.5rem;color:var(--primary-blue)}
+.why-icon{width:60px;height:60px;border-radius:50%;background-color:rgba(197,160,89,0.1);border:1px solid rgba(197,160,89,0.2);display:flex;justify-content:center;align-items:center;margin:0 auto 1.5rem;font-size:1.5rem}
+.why-card h3{font-family:var(--font-heading);font-size:1.2rem;font-weight:700;margin-bottom:0.5rem;color:var(--text-dark)}
 .why-card p{font-size:0.9rem;color:var(--text-muted)}
 .promo-testimonials{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;margin:5rem auto;max-width:1200px;padding:0 1.5rem}
 .promo-banner{position:relative;background:linear-gradient(rgba(15,29,54,0.4),rgba(15,29,54,0.85));background-color:var(--primary-blue);border-radius:16px;padding:4rem 3rem;color:var(--text-white);display:flex;flex-direction:column;justify-content:flex-end;min-height:380px}
 .promo-banner h2{font-family:var(--font-heading);font-size:2rem;margin-bottom:0.5rem}
 .promo-banner p{font-size:0.95rem;margin-bottom:1.5rem;opacity:0.9}
-.promo-link{background-color:var(--bg-white);color:var(--primary-blue);padding:0.8rem 1.5rem;border-radius:8px;text-decoration:none;font-weight:700;align-self:flex-start;transition:all 0.3s}
+.promo-link{background-color:var(--bg-white);color:var(--text-dark);padding:0.8rem 1.5rem;border-radius:8px;text-decoration:none;font-weight:700;align-self:flex-start;transition:all 0.3s}
 .promo-link:hover{background-color:var(--accent-gold);color:var(--text-white)}
 .testimonials{background-color:var(--bg-white);border:1px solid var(--border-color);border-radius:16px;padding:3rem;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;justify-content:space-between}
 .testimonials-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem}
@@ -200,7 +231,15 @@ footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem
 .filter-btn{appearance:none;-webkit-appearance:none;display:inline-flex;align-items:center;background:#f1f5f9;border:1.5px solid #e2e8f0;color:#475569;padding:0.38rem 1rem;border-radius:30px;font-size:0.82rem;font-family:var(--font-body);font-weight:600;cursor:pointer;transition:all 0.2s ease;line-height:1.4;letter-spacing:0.01em;box-shadow:none;text-decoration:none;white-space:nowrap}
 .filter-btn:hover{background:#e0eaff;border-color:#94a3b8;color:var(--primary-blue)}
 .filter-btn.active{background:var(--primary-blue);color:#fff;border-color:var(--primary-blue);font-weight:700;box-shadow:0 3px 10px rgba(15,29,54,0.25)}
-    </style>
+    #manageBookingModal input, #manageBookingModal select, #bookingModal input, #bookingModal select {
+    background-color: var(--bg-light) !important;
+    color: var(--text-dark) !important;
+    border: 1px solid var(--border-color) !important;
+}
+#manageBookingModal input::placeholder, #bookingModal input::placeholder {
+    color: var(--text-muted) !important;
+}
+</style>
     
     <!-- JSON-LD Structured Schema Markup for Search Snippets -->
     <script type="application/ld+json">
@@ -232,13 +271,19 @@ footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem
                 <select class="lang-selector" id="currency-select" style="margin-right: 0.5rem;">
                     <option value="EUR">💶 EUR (€)</option>
                     <option value="MAD">🇲🇦 MAD (DH)</option>
+                    <option value="USD">💵 USD ($)</option>
+                    <option value="GBP">💷 GBP (£)</option>
                 </select>
 
                 <!-- Lang Selector -->
                 <select class="lang-selector" id="lang-select">
                     <option value="en" {{ $locale === 'en' ? 'selected' : '' }}>🇬🇧 English</option>
                     <option value="fr" {{ $locale === 'fr' ? 'selected' : '' }}>🇫🇷 Français</option>
+                    <option value="de" {{ $locale === 'de' ? 'selected' : '' }}>🇩🇪 Deutsch</option>
                 </select>
+
+                <!-- Theme Toggle Button -->
+                <button class="lang-selector" id="theme-toggle-btn" title="Toggle Theme" style="font-size: 1.1rem; padding: 0.35rem 0.65rem;">🌓</button>
                 
                 <a href="#" onclick="openManageBookingModal(); return false;" class="booking-btn">{{ __('messages.my_booking') }}</a>
             </div>
@@ -343,17 +388,25 @@ footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem
 
     <!-- Manage Booking Modal (Public View) -->
     <div id="manageBookingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; justify-content: center; align-items: center; padding: 1.5rem; backdrop-filter: blur(4px);">
-        <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 500px; width: 100%; position: relative; box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto;">
+        <div style="background: var(--bg-white); padding: 2rem; border-radius: 12px; max-width: 500px; width: 100%; position: relative; box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto; border: 1px solid var(--border-color);">
             <button onclick="closeManageBookingModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
             
             <!-- lookup view -->
             <div id="bookingLookupSection">
-                <h3 style="font-family: var(--font-heading); margin-bottom: 0.5rem; color: var(--primary-blue); font-size: 1.5rem; font-weight: 700;">Manage Your Booking</h3>
+                <h3 style="font-family: var(--font-heading); margin-bottom: 0.5rem; color: var(--text-dark); font-size: 1.5rem; font-weight: 700;">Manage Your Booking</h3>
                 <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Enter your booking reference code to view or modify your reservation.</p>
                 
                 <div style="margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
                     <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Booking Reference</label>
-                    <input type="text" id="lookupReference" placeholder="e.g. CAM-A1B2C3" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; outline: none; text-transform: uppercase;">
+                    <input type="text" id="lookupReference" placeholder="e.g. CAM-A1B2C3" style="width: 100%; padding: 0.8rem; border: 1px solid var(--border-color); border-radius: 8px; outline: none; text-transform: uppercase; background-color: var(--bg-light); color: var(--text-dark);">
+                </div>
+
+                <!-- Booking History List -->
+                <div id="bookingHistoryContainer" style="margin-bottom: 1.25rem; display: none;">
+                    <label style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; display: block; margin-bottom: 0.4rem;">Recent Bookings on this Device</label>
+                    <div id="bookingHistoryList" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 120px; overflow-y: auto; background: var(--bg-light); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.5rem;">
+                        <!-- populated via JS -->
+                    </div>
                 </div>
                 
                 <div id="lookupError" style="color: #dc3545; font-size: 0.85rem; margin-bottom: 1rem; display: none;"></div>
@@ -460,7 +513,7 @@ footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem
             const newLocale = this.value;
             const currentPath = window.location.pathname;
             const segments = currentPath.split('/');
-            if (segments[1] === 'en' || segments[1] === 'fr') {
+            if (segments[1] === 'en' || segments[1] === 'fr' || segments[1] === 'de') {
                 segments[1] = newLocale;
             } else {
                 segments.splice(1, 0, newLocale);
@@ -475,7 +528,60 @@ footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem
             document.getElementById('bookingEditSection').style.display = 'none';
             document.getElementById('lookupReference').value = '';
             document.getElementById('lookupError').style.display = 'none';
+            
+            // Populate and show local booking history
+            loadBookingHistory();
+
             document.getElementById('manageBookingModal').style.display = 'flex';
+        }
+
+        function loadBookingHistory() {
+            const container = document.getElementById('bookingHistoryContainer');
+            const list = document.getElementById('bookingHistoryList');
+            if (!container || !list) return;
+
+            const history = JSON.parse(localStorage.getItem('booking_history') || '[]');
+            if (history.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+
+            list.innerHTML = '';
+            history.forEach(item => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.style.display = 'flex';
+                btn.style.justifyContent = 'space-between';
+                btn.style.width = '100%';
+                btn.style.padding = '0.5rem';
+                btn.style.border = '1px solid var(--border-color)';
+                btn.style.background = 'var(--bg-white)';
+                btn.style.borderRadius = '6px';
+                btn.style.cursor = 'pointer';
+                btn.style.textAlign = 'left';
+                btn.style.fontSize = '0.8rem';
+                btn.style.fontWeight = '600';
+                btn.style.color = 'var(--text-dark)';
+                
+                btn.innerHTML = `<span>🔑 <strong style="color: var(--text-dark);">${item.reference}</strong> <span style="color: var(--text-muted); font-weight: normal;">(${item.carName})</span></span> <span style="color:var(--accent-gold); font-size:0.75rem;">Select ➔</span>`;
+                btn.onclick = function() {
+                    document.getElementById('lookupReference').value = item.reference;
+                    retrieveBookingDetails();
+                };
+                list.appendChild(btn);
+            });
+            container.style.display = 'block';
+        }
+
+        function saveToBookingHistory(reference, carName) {
+            let history = JSON.parse(localStorage.getItem('booking_history') || '[]');
+            // Avoid duplicates
+            history = history.filter(item => item.reference !== reference);
+            // Prepend new item
+            history.unshift({ reference: reference, carName: carName });
+            // Cap history at 5 items
+            if (history.length > 5) history.pop();
+            localStorage.setItem('booking_history', JSON.stringify(history));
         }
 
         function closeManageBookingModal() {
@@ -485,6 +591,7 @@ footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem
         function backToLookup() {
             document.getElementById('bookingLookupSection').style.display = 'block';
             document.getElementById('bookingEditSection').style.display = 'none';
+            loadBookingHistory();
         }
 
         async function retrieveBookingDetails() {
@@ -519,6 +626,9 @@ footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem
                 document.getElementById('editReturnLocation').value = booking.return_location || booking.pickup_location;
                 document.getElementById('editPickupDatetime').value = booking.pickup_datetime;
                 document.getElementById('editReturnDatetime').value = booking.return_datetime;
+
+                // Save to device history on successful lookup
+                saveToBookingHistory(booking.booking_reference, data.car_name || 'Car Rental');
 
                 // Populate checkboxes dynamically
                 document.querySelectorAll('#publicEditExtrasContainer input[type="checkbox"]').forEach(cb => cb.checked = false);
@@ -679,27 +789,63 @@ footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem
             }
         }
 
-        // Currency conversion code
-        const exchangeRate = 11; // 1 EUR = 11 DH (MAD)
+        // Currency conversion code with live API fetch & static local cache fallback
+        const staticRates = {
+            'MAD': 1.0,
+            'EUR': 0.091,  // 1 MAD = 0.091 EUR
+            'USD': 0.10,   // 1 MAD = 0.10 USD
+            'GBP': 0.078   // 1 MAD = 0.078 GBP
+        };
+
+        const currencySymbols = {
+            'MAD': 'DH',
+            'EUR': '€',
+            'USD': '$',
+            'GBP': '£'
+        };
+
+        let liveRates = { ...staticRates };
+
+        // Fetch live exchange rates from a free API
+        async function fetchExchangeRates() {
+            try {
+                // Using open exchange rate api relative to MAD
+                const response = await fetch('https://open.er-api.com/v6/latest/MAD');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.rates) {
+                        liveRates['EUR'] = data.rates['EUR'] || staticRates['EUR'];
+                        liveRates['USD'] = data.rates['USD'] || staticRates['USD'];
+                        liveRates['GBP'] = data.rates['GBP'] || staticRates['GBP'];
+                        
+                        // Re-apply current selection with fresh rates
+                        const current = localStorage.getItem('selected_currency') || 'EUR';
+                        window.applyCurrency(current);
+                    }
+                }
+            } catch(e) {
+                console.log("Could not load live rates, using fallback: ", e);
+            }
+        }
 
         window.applyCurrency = function(currency) {
             const elements = document.querySelectorAll('.price-val');
             elements.forEach(el => {
                 const baseMad = parseFloat(el.getAttribute('data-base-mad'));
                 if (!isNaN(baseMad)) {
-                    if (currency === 'EUR') {
-                        el.innerText = Math.round(baseMad / exchangeRate);
-                    } else {
-                        el.innerText = Math.round(baseMad);
-                    }
+                    const rate = liveRates[currency] || staticRates[currency] || 1.0;
+                    el.innerText = Math.round(baseMad * rate);
                 }
             });
 
             const labels = document.querySelectorAll('.currency-label');
             labels.forEach(el => {
-                el.innerText = currency === 'EUR' ? '€' : 'DH';
+                el.innerText = currencySymbols[currency] || 'DH';
             });
         };
+
+        // Fetch live rates on load
+        fetchExchangeRates();
 
         // Initialize currency selector
         const curSelect = document.getElementById('currency-select');
@@ -714,6 +860,32 @@ footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem
                 window.applyCurrency(selected);
             });
         }
+
+        // Initialize Theme Toggle (Dark/Light mode)
+        const themeToggleBtn = document.getElementById('theme-toggle-btn');
+        if (themeToggleBtn) {
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+
+            themeToggleBtn.addEventListener('click', function() {
+                let theme = document.documentElement.getAttribute('data-theme');
+                let newTheme = theme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+            });
+        }
+
+        // Auto-launch WhatsApp redirect if present in session
+        @if(session('whatsapp_redirect_url'))
+            setTimeout(function() {
+                window.open("{{ session('whatsapp_redirect_url') }}", '_blank');
+            }, 1000);
+        @endif
+
+        // Save fresh bookings done in this session to device history
+        @if(session('last_booking_reference'))
+            saveToBookingHistory("{{ session('last_booking_reference') }}", "{{ session('last_booking_car_name', 'Car Rental') }}");
+        @endif
     </script>
 </body>
 </html>

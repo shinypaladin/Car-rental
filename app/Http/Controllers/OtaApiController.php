@@ -69,6 +69,8 @@ class OtaApiController extends Controller
                     'currency' => 'MAD',
                     'total_price' => $totalPrice,
                     'days' => $pricing['days'],
+                    'company_name' => 'Car Airport Morocco',
+                    'company_logo' => asset('/images/logo.png'),
                 ];
             }
         }

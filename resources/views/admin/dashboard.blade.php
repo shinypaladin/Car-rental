@@ -343,11 +343,146 @@
         <!-- Navigation Tabs -->
         <div class="tabs-navigation" style="display: flex; gap: 1rem; border-bottom: 2px solid var(--border-color); margin-bottom: 2rem; flex-wrap: wrap;">
             <button class="tab-btn active" onclick="switchTab('fleet-tab')" id="btn-fleet-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--primary-dark); border-bottom: 3px solid var(--accent-gold); font-size: 1rem;">🏠 Fleet & Pricing</button>
+            <button class="tab-btn" onclick="switchTab('calendar-tab')" id="btn-calendar-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">📅 Live Calendar</button>
+            <button class="tab-btn" onclick="switchTab('alerts-tab')" id="btn-alerts-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">⚠️ Warnings <span style="background:red; color:white; padding:1px 5px; border-radius:10px; font-size:0.7rem; font-weight:800; display:inline-block;" id="alerts-count-badge">0</span></button>
             <button class="tab-btn" onclick="switchTab('extras-tab')" id="btn-extras-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">🎁 Optional Extras</button>
             <button class="tab-btn" onclick="switchTab('expenses-tab')" id="btn-expenses-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">💸 Expense Follow-Up</button>
             <button class="tab-btn" onclick="switchTab('bookings-tab')" id="btn-bookings-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">📅 Reservation Log</button>
             <button class="tab-btn" onclick="switchTab('contacts-tab')" id="btn-contacts-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">💬 Contact Messages</button>
             <button class="tab-btn" onclick="switchTab('api-tab')" id="btn-api-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">🔑 API Integration</button>
+        </div>
+
+        <!-- tab: Live Fleet Calendar (Gantt Chart Layout) -->
+        <div id="calendar-tab" class="tab-content" style="display:none;">
+            <div class="panel" style="margin-bottom: 2rem;">
+                <h2>Live Fleet Booking & Availability Calendar</h2>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.5rem;">
+                    Visual schedule of all bookings. Color key: 
+                    <span style="display:inline-block; width:12px; height:12px; background:#d1fae5; border:1px solid #10b981; border-radius:3px; margin-left:10px;"></span> Confirmed 
+                    <span style="display:inline-block; width:12px; height:12px; background:#fef3c7; border:1px solid #f59e0b; border-radius:3px; margin-left:10px;"></span> Pending
+                </p>
+
+                <div style="overflow-x:auto;">
+                    <div style="min-width: 800px;">
+                        <!-- Calendar Header Row -->
+                        <div style="display:grid; grid-template-columns: 200px repeat(15, 1fr); border-bottom:2px solid var(--border-color); font-weight:700; text-align:center; padding-bottom:0.5rem; font-size:0.78rem;">
+                            <div style="text-align:left; padding-left:0.5rem;">Vehicle Model</div>
+                            @for($d = 0; $d < 15; $d++)
+                            @php $dayDate = now()->addDays($d); @endphp
+                            <div>{{ $dayDate->format('d M') }}</div>
+                            @endfor
+                        </div>
+
+                        <!-- Grid Rows -->
+                        @foreach($cars as $car)
+                            @for($unit = 1; $unit <= $car->quantity; $unit++)
+                            <div style="display:grid; grid-template-columns: 200px repeat(15, 1fr); border-bottom:1px solid var(--border-color); min-height:50px; align-items:center; font-size:0.8rem; padding:0.25rem 0;">
+                                <div style="font-weight:600; padding-left:0.5rem;">
+                                    {{ $car->brand }} {{ $car->model }} 
+                                    <span style="font-size:0.7rem; color:var(--text-muted); font-weight:normal;">(Unit #{{ $unit }} of {{ $car->quantity }})</span>
+                                </div>
+                                
+                                @php
+                                    // Get all active bookings for this vehicle class sorted by booking time
+                                    $carBookings = $bookings->filter(fn($b) => $b->car_id === $car->id && $b->status !== 'cancelled')
+                                                            ->sortBy('pickup_datetime')
+                                                            ->values();
+                                @endphp
+
+                                @for($d = 0; $d < 15; $d++)
+                                @php 
+                                    $dayDate = now()->addDays($d)->startOfDay();
+                                    // Assign active bookings to unique units sequentially to avoid overlapping
+                                    $hasBooking = null;
+                                    $allocatedBookingsCount = 0;
+                                    
+                                    foreach($carBookings as $b) {
+                                        $p = $b->pickup_datetime->copy()->startOfDay();
+                                        $r = $b->return_datetime->copy()->endOfDay();
+                                        
+                                        if ($dayDate->between($p, $r)) {
+                                            $allocatedBookingsCount++;
+                                            // Assign the Nth overlapping booking to the Nth physical car unit row
+                                            if ($allocatedBookingsCount === $unit) {
+                                                $hasBooking = $b;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                @endphp
+                                <div style="height:100%; border-left: 1px solid rgba(0,0,0,0.05); display:flex; align-items:center; justify-content:center; padding: 2px;">
+                                    @if($hasBooking)
+                                    <div style="width:100%; height:80%; border-radius:4px; font-size:0.65rem; font-weight:700; text-align:center; display:flex; align-items:center; justify-content:center;
+                                        background: {{ $hasBooking->status === 'confirmed' ? '#d1fae5' : '#fef3c7' }};
+                                        color: {{ $hasBooking->status === 'confirmed' ? '#065f46' : '#b45309' }};
+                                        border: 1px solid {{ $hasBooking->status === 'confirmed' ? '#10b981' : '#f59e0b' }};"
+                                        title="Booking #{{ $hasBooking->booking_reference }} by {{ $hasBooking->customer_name }} ({{ $hasBooking->pickup_datetime->format('d M') }} - {{ $hasBooking->return_datetime->format('d M') }})">
+                                        {{ substr($hasBooking->customer_name, 0, 8) }}
+                                    </div>
+                                    @else
+                                    <span style="color:#10b981; font-weight:700; font-size:0.75rem;">✓</span>
+                                    @endif
+                                </div>
+                                @endfor
+                            </div>
+                            @endfor
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- tab: Maintenance & Service Alerts Tab -->
+        <div id="alerts-tab" class="tab-content" style="display:none;">
+            <div class="panel" style="margin-bottom: 2rem;">
+                <h2>Automated Maintenance & Fleet Inspection Alerts</h2>
+                <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.5rem;">
+                    According to Moroccan transport regulations: Rental cars require technical inspections at <strong>4 years</strong> (then every 2 years), and mandatory retirement at <strong>5 years</strong>.
+                </p>
+
+                <div id="alerts-list-container">
+                    @php $alertCount = 0; @endphp
+                    
+                    @foreach($cars as $car)
+                        @php
+                            $modelYear  = $car->model_year;
+                            $modelMonth = $car->model_month ?? 1;
+                            $regDate = $modelYear ? \Carbon\Carbon::create($modelYear, $modelMonth, 1) : null;
+                            
+                            $firstInspection = $regDate ? $regDate->copy()->addYears(4) : null;
+                            $eolDate = $regDate ? $regDate->copy()->addYears(5) : null;
+                            
+                            $inspAlert = $firstInspection && now()->diffInDays($firstInspection, false) <= 90;
+                            $eolAlert = $eolDate && now()->diffInDays($eolDate, false) <= 90;
+                        @endphp
+                        
+                        @if($inspAlert || $eolAlert)
+                            @php $alertCount++; @endphp
+                            <div style="padding:1rem; border-radius:8px; margin-bottom:1rem; display:flex; align-items:center; gap:1rem;
+                                background: {{ $eolAlert ? '#fef2f2' : '#fffbeb' }};
+                                border-left: 5px solid {{ $eolAlert ? '#ef4444' : '#f59e0b' }};">
+                                <span style="font-size:1.5rem;">{{ $eolAlert ? '🚫' : '🔧' }}</span>
+                                <div style="flex-grow:1;">
+                                    <h4 style="margin:0; font-size:0.95rem; color:var(--primary-dark);">{{ $car->brand }} {{ $car->model }}</h4>
+                                    <p style="margin:2px 0 0 0; font-size:0.82rem; color:var(--text-muted);">
+                                        @if($eolAlert)
+                                            <strong>Immediate Retirement Alert!</strong> Exceeds the Moroccan mandatory 5-year limit for rental cars (EOL date: {{ $eolDate->format('M Y') }}).
+                                        @else
+                                            <strong>Technical Inspection Due Soon!</strong> First 4-year inspection threshold is scheduled for {{ $firstInspection->format('M Y') }}.
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
+                        @endif
+                    @endforeach
+
+                    @if($alertCount === 0)
+                    <div style="text-align:center; padding:3rem 0; color:var(--text-muted); font-style:italic;">
+                        🎉 All vehicles conform to technical standards. No inspections or retirements due in next 90 days.
+                    </div>
+                    @endif
+                </div>
+            </div>
         </div>
 
         <!-- tab 2: Optional Extras Management -->
@@ -439,6 +574,7 @@
                 <table>
                     <thead>
                         <tr>
+                            <th>Priority</th>
                             <th>Car Model</th>
                             <th>Model Year</th>
                             <th>Category</th>
@@ -469,6 +605,9 @@
                             $inspDays = $nextInspection ? now()->diffInDays($nextInspection, false) : null;
                         @endphp
                         <tr>
+                            <td style="text-align:center;">
+                                <span style="display:inline-block; width:28px; height:28px; line-height:28px; border-radius:50%; background:var(--primary-dark); color:white; font-size:0.75rem; font-weight:700; text-align:center;">{{ $car->display_order ?? 99 }}</span>
+                            </td>
                             <td><strong>{{ $car->brand }} {{ $car->model }}</strong></td>
                             <td>
                                 @if($modelYear)
@@ -622,6 +761,11 @@
                                 <input type="number" name="other_cost" value="0" min="0">
                             </div>
                         </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                        <label>Homepage Display Priority <span style="font-size:0.72rem; color:var(--text-muted);">(1 = first, lower number = appears earlier)</span></label>
+                        <input type="number" name="display_order" min="1" max="999" value="99">
                     </div>
                     
                     <button type="submit" class="btn-submit">Save New Vehicle</button>
@@ -1087,6 +1231,7 @@
                     <table>
                         <thead>
                             <tr>
+                                <th>Priority</th>
                                 <th>Partner Agency</th>
                                 <th>API Endpoint URL</th>
                                 <th>Commission Markup</th>
@@ -1097,6 +1242,11 @@
                         <tbody>
                             @foreach($partnerSites as $partner)
                             <tr>
+                                <td style="text-align:center;">
+                                    <span style="display:inline-block; width:28px; height:28px; line-height:28px; border-radius:50%; background:#2563eb; color:white; font-size:0.75rem; font-weight:700; text-align:center;" title="Homepage display priority — edit partner to change">
+                                        {{ $partner->display_order ?? 99 }}
+                                    </span>
+                                </td>
                                 <td><strong>{{ $partner->name }}</strong></td>
                                 <td><code>{{ $partner->api_url }}</code></td>
                                 <td><strong style="color: var(--accent-gold);">+{{ $partner->markup_percent }}%</strong></td>
@@ -1117,7 +1267,7 @@
                             @endforeach
                             @if($partnerSites->isEmpty())
                             <tr>
-                                <td colspan="5" style="text-align: center; color: var(--text-muted); font-style: italic; padding: 2rem;">
+                                <td colspan="6" style="text-align: center; color: var(--text-muted); font-style: italic; padding: 2rem;">
                                     No external partner sites connected.
                                 </td>
                             </tr>
@@ -1150,9 +1300,42 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Commission Markup (%)</label>
+                            <label>Global Commission Markup (%)</label>
                             <input type="number" name="markup_percent" value="10" min="0" max="100" required>
-                            <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Percentage to add to their rates when showing to your website clients.</span>
+                            <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Default percentage if category-specific values are not set.</span>
+                        </div>
+
+                        <div style="border: 1px solid var(--border-color); border-radius: 6px; padding: 1rem; margin-bottom: 1rem; background: var(--bg-light);">
+                            <h4 style="margin: 0 0 0.5rem 0; font-size: 0.85rem; color: var(--primary-dark);">🎯 Dynamic Commission per Class (Optional)</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                                <div class="form-group">
+                                    <label style="font-size:0.75rem;">Economy (%)</label>
+                                    <input type="number" name="markup_economy" placeholder="e.g. 10">
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-size:0.75rem;">SUV (%)</label>
+                                    <input type="number" name="markup_suv" placeholder="e.g. 12">
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-size:0.75rem;">Van (%)</label>
+                                    <input type="number" name="markup_van" placeholder="e.g. 15">
+                                </div>
+                                <div class="form-group">
+                                    <label style="font-size:0.75rem;">Luxury (%)</label>
+                                    <input type="number" name="markup_luxury" placeholder="e.g. 20">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Allowed Car Brands / Companies (Optional - Comma separated)</label>
+                            <input type="text" name="allowed_companies_csv" placeholder="e.g. Hertz, Avis, Sixt, Aircar">
+                            <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Specify allowed brands (e.g. "Hertz, Avis"). Leave empty to allow all brands.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Homepage Display Priority <span style="font-size:0.72rem; color:var(--text-muted);">(1 = first among partners, higher = later)</span></label>
+                            <input type="number" name="display_order" min="1" max="999" value="99">
                         </div>
                         
                         <button type="submit" class="btn-submit">Connect Partner</button>
@@ -1483,6 +1666,7 @@
             document.getElementById('edit_maintenance_cost').value = car.maintenance_cost || 0;
             document.getElementById('edit_fuel_cost').value = car.fuel_cost || 0;
             document.getElementById('edit_other_cost').value = car.other_cost || 0;
+            document.getElementById('edit_display_order').value = car.display_order ?? 99;
 
             document.getElementById('editCarModal').style.display = 'flex';
         }
@@ -1561,6 +1745,17 @@
             activeBtn.style.borderBottom = '3px solid var(--accent-gold)';
             activeBtn.style.opacity = '1';
         }
+
+        // Calculate and set the maintenance alert badge count on DOM load
+        document.addEventListener('DOMContentLoaded', function() {
+            const list = document.getElementById('alerts-list-container');
+            if (list) {
+                // Count active alerts (excluding the no alerts message container)
+                const count = list.children.length;
+                const isEmpty = list.innerText.includes('All vehicles conform');
+                document.getElementById('alerts-count-badge').innerText = isEmpty ? 0 : count;
+            }
+        });
         
         // Close modals on background click
         window.onclick = function(event) {
@@ -1626,7 +1821,108 @@
             document.getElementById('edit_partner_api_url').value = partner.api_url;
             document.getElementById('edit_partner_api_key').value = partner.api_key;
             document.getElementById('edit_partner_markup_percent').value = partner.markup_percent;
+            document.getElementById('edit_partner_display_order').value = partner.display_order ?? 99;
+            
+            // Populate allowed companies and brands CSV hidden fields
+            const allowed = partner.allowed_companies || [];
+            document.getElementById('edit_partner_allowed_companies_csv').value = allowed.join(', ');
+            const allowedBrands = partner.allowed_brands || [];
+            document.getElementById('edit_partner_allowed_brands_csv').value = allowedBrands.join(', ');
+
+            // Load partner companies and brands dynamically via AJAX checklists
+            const listContainer = document.getElementById('partner_companies_checklist');
+            const brandListContainer = document.getElementById('partner_brands_checklist');
+
+            if (listContainer || brandListContainer) {
+                if (listContainer) listContainer.innerHTML = '<span style="font-size: 0.8rem; color: var(--text-muted); grid-column: span 2; font-style: italic;">Fetching partner fleet companies...</span>';
+                if (brandListContainer) brandListContainer.innerHTML = '<span style="font-size: 0.8rem; color: var(--text-muted); grid-column: span 2; font-style: italic;">Fetching partner fleet brands...</span>';
+                
+                fetch(`/${locale}/admin/partner-sites/${partner.id}/companies`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Populate companies list
+                            if (listContainer) {
+                                if (data.companies && data.companies.length > 0) {
+                                    listContainer.innerHTML = '';
+                                    data.companies.forEach(company => {
+                                        const label = document.createElement('label');
+                                        label.style.cssText = 'display:flex; align-items:center; gap:0.5rem; font-size:0.82rem; font-weight:600; cursor:pointer; color:var(--text-dark); margin:0;';
+                                        
+                                        const isChecked = allowed.includes(company);
+                                        label.innerHTML = `
+                                            <input type="checkbox" value="${company}" ${isChecked ? 'checked' : ''} onchange="updatePartnerCompaniesCsv()" style="width:auto; cursor:pointer;">
+                                            ${company}
+                                        `;
+                                        listContainer.appendChild(label);
+                                    });
+                                } else {
+                                    listContainer.innerHTML = '<span style="font-size: 0.8rem; color: red; grid-column: span 2; font-style: italic;">No companies found</span>';
+                                }
+                            }
+
+                            // Populate brands list
+                            if (brandListContainer) {
+                                if (data.brands && data.brands.length > 0) {
+                                    brandListContainer.innerHTML = '';
+                                    data.brands.forEach(brand => {
+                                        const label = document.createElement('label');
+                                        label.style.cssText = 'display:flex; align-items:center; gap:0.5rem; font-size:0.82rem; font-weight:600; cursor:pointer; color:var(--text-dark); margin:0;';
+                                        
+                                        const isChecked = allowedBrands.includes(brand);
+                                        label.innerHTML = `
+                                            <input type="checkbox" value="${brand}" ${isChecked ? 'checked' : ''} onchange="updatePartnerBrandsCsv()" style="width:auto; cursor:pointer;">
+                                            ${brand}
+                                        `;
+                                        brandListContainer.appendChild(label);
+                                    });
+                                } else {
+                                    brandListContainer.innerHTML = '<span style="font-size: 0.8rem; color: red; grid-column: span 2; font-style: italic;">No brands found</span>';
+                                }
+                            }
+                        } else {
+                            if (listContainer) listContainer.innerHTML = '<span style="font-size: 0.8rem; color: red; grid-column: span 2; font-style: italic;">Failed to load data</span>';
+                            if (brandListContainer) brandListContainer.innerHTML = '<span style="font-size: 0.8rem; color: red; grid-column: span 2; font-style: italic;">Failed to load data</span>';
+                        }
+                    })
+                    .catch(err => {
+                        if (listContainer) listContainer.innerHTML = '<span style="font-size: 0.8rem; color: red; grid-column: span 2; font-style: italic;">Error fetching fleet data</span>';
+                        if (brandListContainer) brandListContainer.innerHTML = '<span style="font-size: 0.8rem; color: red; grid-column: span 2; font-style: italic;">Error fetching fleet data</span>';
+                    });
+            }
+
+            // Populate category specific markups if present
+            const cms = partner.category_markups || {};
+            document.getElementById('edit_partner_markup_economy').value = cms.Economy !== undefined ? cms.Economy : '';
+            document.getElementById('edit_partner_markup_suv').value = cms.SUV !== undefined ? cms.SUV : '';
+            document.getElementById('edit_partner_markup_van').value = cms.Van !== undefined ? cms.Van : '';
+            document.getElementById('edit_partner_markup_luxury').value = cms.Luxury !== undefined ? cms.Luxury : '';
+            
             document.getElementById('editPartnerModal').style.display = 'flex';
+        }
+
+        function updatePartnerCompaniesCsv() {
+            const container = document.getElementById('partner_companies_checklist');
+            if (!container) return;
+            const checked = [];
+            container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                if (cb.checked) {
+                    checked.push(cb.value);
+                }
+            });
+            document.getElementById('edit_partner_allowed_companies_csv').value = checked.join(',');
+        }
+
+        function updatePartnerBrandsCsv() {
+            const container = document.getElementById('partner_brands_checklist');
+            if (!container) return;
+            const checked = [];
+            container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                if (cb.checked) {
+                    checked.push(cb.value);
+                }
+            });
+            document.getElementById('edit_partner_allowed_brands_csv').value = checked.join(',');
         }
 
         function closeEditPartnerModal() {
@@ -1750,8 +2046,57 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Commission Markup (%)</label>
+                    <label>Global Commission Markup (%)</label>
                     <input type="number" name="markup_percent" id="edit_partner_markup_percent" min="0" max="100" required>
+                </div>
+
+                <div style="border: 1px solid var(--border-color); border-radius: 6px; padding: 1rem; margin-bottom: 1rem; background: var(--bg-light);">
+                    <h4 style="margin: 0 0 0.5rem 0; font-size: 0.85rem; color: var(--primary-dark);">🎯 Dynamic Commission per Class (Optional)</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">Economy (%)</label>
+                            <input type="number" name="markup_economy" id="edit_partner_markup_economy" placeholder="e.g. 10">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">SUV (%)</label>
+                            <input type="number" name="markup_suv" id="edit_partner_markup_suv" placeholder="e.g. 12">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">Van (%)</label>
+                            <input type="number" name="markup_van" id="edit_partner_markup_van" placeholder="e.g. 15">
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size:0.75rem;">Luxury (%)</label>
+                            <input type="number" name="markup_luxury" id="edit_partner_markup_luxury" placeholder="e.g. 20">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label style="font-weight: 700; color: var(--primary-dark); font-size: 0.9rem;">🏢 Filter by Company Name (Suppliers)</label>
+                    <input type="hidden" name="allowed_companies_csv" id="edit_partner_allowed_companies_csv">
+                    
+                    <!-- Dynamic Companies Checklist -->
+                    <div id="partner_companies_checklist" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; background: var(--bg-light); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); margin-top: 0.25rem; max-height: 120px; overflow-y: auto;">
+                        <span style="font-size: 0.8rem; color: var(--text-muted); grid-column: span 2; font-style: italic;">Loading partner fleet companies...</span>
+                    </div>
+                    <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Select which suppliers' cars from this partner to display. If none are checked, all will be displayed.</span>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label style="font-weight: 700; color: var(--primary-dark); font-size: 0.9rem;">🚗 Filter by Car Brand (Manufacturers)</label>
+                    <input type="hidden" name="allowed_brands_csv" id="edit_partner_allowed_brands_csv">
+                    
+                    <!-- Dynamic Brands Checklist -->
+                    <div id="partner_brands_checklist" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; background: var(--bg-light); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); margin-top: 0.25rem; max-height: 120px; overflow-y: auto;">
+                        <span style="font-size: 0.8rem; color: var(--text-muted); grid-column: span 2; font-style: italic;">Loading partner fleet brands...</span>
+                    </div>
+                    <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Select which car brands (e.g. Renault, Dacia) from this partner to display. If none are checked, all will be displayed.</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Homepage Display Priority <span style="font-size:0.72rem; color:var(--text-muted);">(1 = first among partners, higher = later)</span></label>
+                    <input type="number" name="display_order" id="edit_partner_display_order" min="1" max="999" value="99">
                 </div>
                 
                 <button type="submit" class="btn-submit">Save Partner Changes</button>

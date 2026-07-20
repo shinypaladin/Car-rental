@@ -1,7 +1,11 @@
 @extends('layouts.app')
 
 @section('title')
-{{ __('messages.hero_title') }} | Car Airport Morocco
+{{ $seoTitle ?? __('messages.hero_title') . ' | Car Airport Morocco' }}
+@endsection
+
+@section('meta_description')
+{{ $seoDescription ?? 'Rent a car at Marrakech Airport from 250 DH per day. Free airport delivery, full insurance, unlimited mileage, and direct WhatsApp booking.' }}
 @endsection
 
 @section('content')
@@ -137,6 +141,13 @@
     </div>
 
 
+    <!-- Sort Toggle -->
+    <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem; flex-wrap:wrap;">
+        <span style="font-weight:700; color:#334155; font-size:0.82rem; letter-spacing:0.02em; text-transform:uppercase;">Sort:</span>
+        <button id="sort-pertinence" onclick="setSortMode('pertinence')" class="filter-btn active" style="background:var(--primary-dark); color:white;">⭐ Pertinence</button>
+        <button id="sort-price" onclick="setSortMode('price')" class="filter-btn">💰 Price ↑</button>
+    </div>
+
     <!-- Filters Toolbar -->
     <div class="filter-toolbar">
         <span style="font-weight: 700; color: #334155; font-size: 0.82rem; letter-spacing: 0.02em; text-transform: uppercase;">Class:</span>
@@ -160,11 +171,26 @@
     
     <div class="cars-grid">
         @foreach($cars as $car)
-        <div class="car-card" data-category="{{ $car->category }}" data-trans="{{ $car->transmission }}" style="transition: opacity 0.3s ease, transform 0.3s ease;">
+        <div class="car-card" data-category="{{ $car->category }}" data-trans="{{ $car->transmission }}" data-sort-order="{{ $car->pertinence_rank ?? 0 }}" data-price="{{ $car->total_price ?? 0 }}" style="transition: opacity 0.3s ease, transform 0.3s ease;">
             <div class="car-image-container">
-                @if($car->brand === 'Volkswagen')
-                <div class="car-badge">Top Choice</div>
+                <!-- Dynamic Availability Badge -->
+                @if(isset($car->total_bookings_count) && isset($car->quantity))
+                    @php
+                        $remaining = max(0, $car->quantity - $car->total_bookings_count);
+                    @endphp
+                    @if($remaining === 0 && !$car->allow_overbooking)
+                        <div class="car-badge" style="background-color: #dc3545; color: white;">Fully Booked</div>
+                    @elseif($remaining === 1 && !$car->allow_overbooking)
+                        <div class="car-badge" style="background-color: #ff9f43; color: white;">Only 1 Left!</div>
+                    @else
+                        <div class="car-badge" style="background-color: #28c76f; color: white;">Available</div>
+                    @endif
+                @else
+                    @if($car->brand === 'Volkswagen')
+                        <div class="car-badge" style="background-color: #0066cc; color: white;">Top Choice</div>
+                    @endif
                 @endif
+
                 <button class="wishlist-btn" title="Add to favorites">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="color: #666;">
                         <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
@@ -181,6 +207,16 @@
             </div>
             
             <div class="car-details">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        @if(!empty($car->company_logo))
+                            <img src="{{ $car->company_logo }}" alt="{{ $car->company_name }}" style="height: 16px; width: 16px; object-fit: contain; border-radius: 2px;">
+                        @else
+                            <span style="font-size: 0.85rem;">🏢</span>
+                        @endif
+                        <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent-gold); letter-spacing: 0.5px; text-transform: uppercase;">{{ $car->company_name }}</span>
+                    </div>
+                </div>
                 <div class="car-title-row">
                     <h3>{{ $car->brand }} {{ $car->model }}</h3>
                 </div>
@@ -359,13 +395,13 @@
 <!-- FAQs Section (Booking.com style) -->
 <section class="section-container" id="faqs" style="margin-top: 5rem; margin-bottom: 5rem;">
     <div class="section-header" style="text-align: center; display: block;">
-        <h2 style="font-family: var(--font-heading); font-size: 2rem; color: #fff; margin-bottom: 0.5rem;">Frequently Asked Questions</h2>
+        <h2 style="font-family: var(--font-heading); font-size: 2rem; color: var(--text-dark); margin-bottom: 0.5rem;">Frequently Asked Questions</h2>
         <p style="color: var(--text-muted); font-size: 0.95rem;">Have questions about renting a car with us? Here are some quick answers.</p>
     </div>
     
     <div style="max-width: 800px; margin: 3rem auto 0 auto; display: flex; flex-direction: column; gap: 1rem;">
-        <div class="faq-item" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; overflow: hidden; transition: all 0.3s ease;">
-            <button class="faq-trigger" onclick="toggleFaq(this)" style="width: 100%; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; background: none; border: none; text-align: left; color: #fff; font-weight: 700; font-size: 1rem; cursor: pointer;">
+        <div class="faq-item" style="background: var(--bg-white); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; transition: all 0.3s ease;">
+            <button class="faq-trigger" onclick="toggleFaq(this)" style="width: 100%; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; background: none; border: none; text-align: left; color: var(--text-dark); font-weight: 700; font-size: 1rem; cursor: pointer;">
                 <span>What is required to rent a car in Morocco?</span>
                 <span class="faq-icon" style="transition: transform 0.3s ease;">▼</span>
             </button>
@@ -374,8 +410,8 @@
             </div>
         </div>
 
-        <div class="faq-item" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; overflow: hidden; transition: all 0.3s ease;">
-            <button class="faq-trigger" onclick="toggleFaq(this)" style="width: 100%; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; background: none; border: none; text-align: left; color: #fff; font-weight: 700; font-size: 1rem; cursor: pointer;">
+        <div class="faq-item" style="background: var(--bg-white); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; transition: all 0.3s ease;">
+            <button class="faq-trigger" onclick="toggleFaq(this)" style="width: 100%; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; background: none; border: none; text-align: left; color: var(--text-dark); font-weight: 700; font-size: 1rem; cursor: pointer;">
                 <span>Is insurance included?</span>
                 <span class="faq-icon" style="transition: transform 0.3s ease;">▼</span>
             </button>
@@ -384,8 +420,8 @@
             </div>
         </div>
 
-        <div class="faq-item" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; overflow: hidden; transition: all 0.3s ease;">
-            <button class="faq-trigger" onclick="toggleFaq(this)" style="width: 100%; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; background: none; border: none; text-align: left; color: #fff; font-weight: 700; font-size: 1rem; cursor: pointer;">
+        <div class="faq-item" style="background: var(--bg-white); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; transition: all 0.3s ease;">
+            <button class="faq-trigger" onclick="toggleFaq(this)" style="width: 100%; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; background: none; border: none; text-align: left; color: var(--text-dark); font-weight: 700; font-size: 1rem; cursor: pointer;">
                 <span>What is the fuel policy?</span>
                 <span class="faq-icon" style="transition: transform 0.3s ease;">▼</span>
             </button>
@@ -394,8 +430,8 @@
             </div>
         </div>
 
-        <div class="faq-item" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; overflow: hidden; transition: all 0.3s ease;">
-            <button class="faq-trigger" onclick="toggleFaq(this)" style="width: 100%; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; background: none; border: none; text-align: left; color: #fff; font-weight: 700; font-size: 1rem; cursor: pointer;">
+        <div class="faq-item" style="background: var(--bg-white); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; transition: all 0.3s ease;">
+            <button class="faq-trigger" onclick="toggleFaq(this)" style="width: 100%; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; background: none; border: none; text-align: left; color: var(--text-dark); font-weight: 700; font-size: 1rem; cursor: pointer;">
                 <span>Can I modify or cancel my reservation?</span>
                 <span class="faq-icon" style="transition: transform 0.3s ease;">▼</span>
             </button>
@@ -408,9 +444,9 @@
 
 <!-- Contact Form Section -->
 <section class="section-container" id="contact-form" style="margin-top: 5rem; margin-bottom: 5rem;">
-    <div style="background: linear-gradient(135deg, #0f1d36 0%, #1e293b 100%); border: 1px solid rgba(197, 160, 89, 0.2); border-radius: 12px; padding: 3rem; max-width: 800px; margin: 0 auto; box-shadow: var(--shadow-lg);">
+    <div style="background: var(--bg-white); border: 1px solid var(--border-color); border-radius: 12px; padding: 3rem; max-width: 800px; margin: 0 auto; box-shadow: var(--shadow-lg);">
         <div class="section-header" style="text-align: center; display: block; margin-bottom: 2rem;">
-            <h2 style="font-family: var(--font-heading); font-size: 2rem; color: #fff; margin-bottom: 0.5rem;">Contact Us</h2>
+            <h2 style="font-family: var(--font-heading); font-size: 2rem; color: var(--text-dark); margin-bottom: 0.5rem;">Contact Us</h2>
             <p style="color: var(--text-muted); font-size: 0.95rem;">Have any questions or need custom arrangements? Drop us a message!</p>
         </div>
 
@@ -424,23 +460,23 @@
             @csrf
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                 <div>
-                    <label style="font-size: 0.78rem; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 0.25rem;">Full Name</label>
-                    <input type="text" name="name" required style="width: 100%; padding: 0.65rem; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; border-radius: 6px; font-size: 0.88rem;">
+                    <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-dark); display: block; margin-bottom: 0.25rem;">Full Name</label>
+                    <input type="text" name="name" required style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); background: var(--bg-light); color: var(--text-dark); border-radius: 6px; font-size: 0.88rem;">
                 </div>
                 <div>
-                    <label style="font-size: 0.78rem; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 0.25rem;">Email Address</label>
-                    <input type="email" name="email" required style="width: 100%; padding: 0.65rem; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; border-radius: 6px; font-size: 0.88rem;">
+                    <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-dark); display: block; margin-bottom: 0.25rem;">Email Address</label>
+                    <input type="email" name="email" required style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); background: var(--bg-light); color: var(--text-dark); border-radius: 6px; font-size: 0.88rem;">
                 </div>
             </div>
 
             <div>
-                <label style="font-size: 0.78rem; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 0.25rem;">Phone Number (WhatsApp preferred - Optional)</label>
-                <input type="tel" name="phone" placeholder="+212..." style="width: 100%; padding: 0.65rem; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; border-radius: 6px; font-size: 0.88rem;">
+                <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-dark); display: block; margin-bottom: 0.25rem;">Phone Number (WhatsApp preferred - Optional)</label>
+                <input type="tel" name="phone" placeholder="+212..." style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); background: var(--bg-light); color: var(--text-dark); border-radius: 6px; font-size: 0.88rem;">
             </div>
 
             <div>
-                <label style="font-size: 0.78rem; font-weight: 700; color: #cbd5e1; display: block; margin-bottom: 0.25rem;">Your Message</label>
-                <textarea name="message" rows="5" required style="width: 100%; padding: 0.65rem; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; border-radius: 6px; font-size: 0.88rem; resize: vertical;"></textarea>
+                <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-dark); display: block; margin-bottom: 0.25rem;">Your Message</label>
+                <textarea name="message" rows="5" required style="width: 100%; padding: 0.65rem; border: 1px solid var(--border-color); background: var(--bg-light); color: var(--text-dark); border-radius: 6px; font-size: 0.88rem; resize: vertical;"></textarea>
             </div>
 
             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
@@ -458,7 +494,49 @@
     </div>
 </section>
 
-<!-- Simple Booking Overlay Modal (HTML only, controlled dynamically) -->
+<!-- Airport Pickup Map Section -->
+<section class="section-container" id="pickup-guide" style="margin-top: 5rem; margin-bottom: 5rem;">
+    <div style="background: var(--bg-white); border: 1px solid var(--border-color); border-radius: 12px; padding: 2.5rem; box-shadow: var(--shadow-sm); display: grid; grid-template-columns: 1.2fr 1fr; gap: 2.5rem; align-items: center; min-height: 400px;">
+        <div>
+            <h2 style="font-family: var(--font-heading); font-size: 2rem; color: var(--primary-blue); margin-bottom: 1rem;">Airport Pick-up Locations</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.6;">
+                We offer free, personalized <strong>Meet & Greet service</strong> at all major Moroccan airports. 
+                Our coordinator will wait for you directly outside the customs exit terminal holding a signboard with your name on it.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+                    <span style="font-size: 1.25rem;">📍</span>
+                    <div>
+                        <strong style="color: var(--text-dark); display: block; font-size: 0.9rem;">Marrakech Menara Airport (RAK)</strong>
+                        <span style="color: var(--text-muted); font-size: 0.85rem;">Terminal 1 & 2 passenger exit area (right next to the currency exchange counters).</span>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+                    <span style="font-size: 1.25rem;">📍</span>
+                    <div>
+                        <strong style="color: var(--text-dark); display: block; font-size: 0.9rem;">Casablanca Mohammed V Airport (CMN)</strong>
+                        <span style="color: var(--text-muted); font-size: 0.85rem;">Terminal 1 & 2 Arrivals terminal exit doors.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="width: 100%; height: 320px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);">
+            <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d13589.654876793132!2d-8.034336056525641!3d31.608337775984033!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xdafee16df0dc6d3%3A0x8e83be6228392ba8!2sMarrakech%20Menara%20Airport!5e0!3m2!1sen!2sma!4v1700000000000!5m2!1sen!2sma" 
+                width="100%" 
+                height="100%" 
+                style="border:0;" 
+                allowfullscreen="" 
+                loading="lazy" 
+                referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+        </div>
+    </div>
+</section>
+
+
+
+</section><!-- Simple Booking Overlay Modal (HTML only, controlled dynamically) -->
 <div id="bookingModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; justify-content: center; align-items: center; padding: 1.5rem;">
     <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 500px; width: 100%; position: relative; box-shadow: var(--shadow-lg); color: #333;">
 
@@ -566,6 +644,55 @@ function applyFilters() {
     });
 }
 
+// --- Sort Mode (Pertinence / Price) ---
+let currentSortMode = 'pertinence';
+
+function setSortMode(mode) {
+    currentSortMode = mode;
+
+    // Update button active state
+    const btnPert  = document.getElementById('sort-pertinence');
+    const btnPrice = document.getElementById('sort-price');
+    if (mode === 'pertinence') {
+        btnPert.classList.add('active');
+        btnPert.style.background  = 'var(--primary-dark)';
+        btnPert.style.color       = 'white';
+        btnPrice.classList.remove('active');
+        btnPrice.style.background = '';
+        btnPrice.style.color      = '';
+    } else {
+        btnPrice.classList.add('active');
+        btnPrice.style.background  = 'var(--primary-dark)';
+        btnPrice.style.color       = 'white';
+        btnPert.classList.remove('active');
+        btnPert.style.background = '';
+        btnPert.style.color      = '';
+    }
+
+    // Re-order cards in the DOM
+    const grid  = document.querySelector('.cars-grid');
+    const cards = Array.from(grid.querySelectorAll('.car-card'));
+
+    cards.sort((a, b) => {
+        if (mode === 'price') {
+            return parseFloat(a.getAttribute('data-price')) - parseFloat(b.getAttribute('data-price'));
+        }
+        return parseInt(a.getAttribute('data-sort-order')) - parseInt(b.getAttribute('data-sort-order'));
+    });
+
+    // Fade out, re-append, fade in
+    cards.forEach(c => { c.style.opacity = '0'; c.style.transform = 'translateY(8px)'; });
+    setTimeout(() => {
+        cards.forEach(c => grid.appendChild(c));
+        cards.forEach((c, i) => {
+            setTimeout(() => {
+                c.style.opacity   = '1';
+                c.style.transform = 'translateY(0)';
+            }, i * 30);
+        });
+    }, 250);
+}
+
 function toggleFaq(trigger) {
     const faqItem = trigger.parentNode;
     const content = faqItem.querySelector('.faq-content');
@@ -645,11 +772,13 @@ function updateBookingModalPrice() {
     const total = vehicleCost + extrasCost;
     
     const mt = document.getElementById('modalTotalPrice');
-    mt.setAttribute('data-base-mad', total);
-    if (typeof window.applyCurrency === 'function') {
-        window.applyCurrency(localStorage.getItem('selected_currency') || 'EUR');
-    } else {
-        mt.innerText = total;
+    if (mt) {
+        mt.setAttribute('data-base-mad', total);
+        if (typeof window.applyCurrency === 'function') {
+            window.applyCurrency(localStorage.getItem('selected_currency') || 'EUR');
+        } else {
+            mt.innerText = total;
+        }
     }
 }
 
@@ -657,5 +786,4 @@ function closeBookingModal() {
     document.getElementById('bookingModal').style.display = 'none';
 }
 </script>
-
 @endsection

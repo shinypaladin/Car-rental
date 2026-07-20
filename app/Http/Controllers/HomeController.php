@@ -17,7 +17,7 @@ class HomeController extends Controller
         $pickupDate = $request->query('pickup_date');
         $returnDate = $request->query('return_date');
         
-        $cars = Car::all();
+        $cars = Car::orderBy('display_order')->get();
         
         $searchParams = [
             'pickup_location' => $request->query('pickup_location', 'Marrakech Airport (RAK)'),
@@ -32,6 +32,7 @@ class HomeController extends Controller
         $pickupDt = Carbon::parse($searchParams['pickup_date'] . ' ' . $searchParams['pickup_time']);
         $returnDt = Carbon::parse($searchParams['return_date'] . ' ' . $searchParams['return_time']);
         
+        $pricing = ['days' => 4]; // fallback
         foreach ($cars as $car) {
             // 1. Calculate price
             $pricing = PricingEngine::calculatePrice($car, $pickupDt, $returnDt);
@@ -47,9 +48,22 @@ class HomeController extends Controller
         // 3. Fetch and merge partner inventory
         $partnerCars = \App\Helpers\PartnerAggregator::fetchPartnerCars($pickupDt->toDateTimeString(), $returnDt->toDateTimeString());
 
-        $mergedCars = [];
+        // --- Own fleet: already ordered by display_order from DB query ---
+        $ownCarsMapped = [];
         foreach ($cars as $car) {
-            $mergedCars[] = [
+            // Count active overlapping bookings
+            $bookingsCount = $car->bookings()
+                ->where('status', '!=', 'cancelled')
+                ->where(function ($q) use ($pickupDt, $returnDt) {
+                    $q->whereBetween('pickup_datetime', [$pickupDt, $returnDt])
+                      ->orWhereBetween('return_datetime', [$pickupDt, $returnDt])
+                      ->orWhere(function ($q2) use ($pickupDt, $returnDt) {
+                          $q2->where('pickup_datetime', '<=', $pickupDt)
+                             ->where('return_datetime', '>=', $returnDt);
+                      });
+                })->count();
+
+            $ownCarsMapped[] = [
                 'id' => (string) $car->id,
                 'brand' => $car->brand,
                 'model' => $car->model,
@@ -58,6 +72,8 @@ class HomeController extends Controller
                 'transmission' => $car->transmission,
                 'ac' => $car->ac ? 'Yes' : 'No',
                 'quantity' => $car->quantity,
+                'allow_overbooking' => $car->allow_overbooking,
+                'total_bookings_count' => $bookingsCount,
                 'display_price' => $car->display_price,
                 'total_price' => $car->total_price,
                 'image_path' => $car->image_path,
@@ -69,11 +85,24 @@ class HomeController extends Controller
                 'partner_id' => null,
                 'partner_vehicle_id' => null,
                 'days' => $car->days ?? 4,
+                'display_order' => $car->display_order ?? 99,
+                'company_name' => 'Car Airport Morocco',
+                'company_logo' => asset('/images/logo.png'),
             ];
         }
 
+        // --- Partner cars: sorted by their partner site's display_order ---
+        $partnerOrders = \App\Models\PartnerSite::pluck('display_order', 'id')->toArray();
+
+        usort($partnerCars, function ($a, $b) use ($partnerOrders) {
+            $orderA = $partnerOrders[$a['partner_id']] ?? 99;
+            $orderB = $partnerOrders[$b['partner_id']] ?? 99;
+            return $orderA <=> $orderB;
+        });
+
+        $partnerCarsMapped = [];
         foreach ($partnerCars as $pCar) {
-            $mergedCars[] = [
+            $partnerCarsMapped[] = [
                 'id' => $pCar['id'],
                 'brand' => $pCar['brand'],
                 'model' => $pCar['model'],
@@ -93,23 +122,45 @@ class HomeController extends Controller
                 'partner_id' => $pCar['partner_id'],
                 'partner_vehicle_id' => $pCar['partner_vehicle_id'],
                 'days' => $pricing['days'] ?? 4,
+                'company_name' => $pCar['company_name'] ?? $pCar['partner_name'],
+                'company_logo' => $pCar['company_logo'] ?? null,
             ];
         }
 
-        // Sort by total_price ascending
-        usort($mergedCars, function ($a, $b) {
-            return $a['total_price'] <=> $b['total_price'];
-        });
+        // Pertinence order: own fleet first (by display_order), then partner cars (by partner display_order)
+        $pertinenceMerged = array_merge($ownCarsMapped, $partnerCarsMapped);
 
-        // Convert array to collection of stdClass objects so view handles it normally
-        $cars = collect(array_map(function ($item) {
-            return (object) $item;
-        }, $mergedCars));
+        // Assign a global pertinence rank for client-side JS re-sorting
+        foreach ($pertinenceMerged as $idx => &$item) {
+            $item['pertinence_rank'] = $idx;
+        }
+        unset($item);
 
-        $extras = \App\Models\Extra::all();
+        $cars = collect(array_map(fn($item) => (object) $item, $pertinenceMerged));
+
+        $extras  = \App\Models\Extra::all();
         $reviews = \App\Services\GoogleReviewsService::getReviewsData();
 
-        return view('home', compact('cars', 'searchParams', 'locale', 'extras', 'reviews'));
+        // --- Dynamic SEO Meta Tags Generation ---
+        $locName = $searchParams['pickup_location'];
+        $cleanLoc = 'Marrakech Airport (RAK)';
+        if (str_contains($locName, 'Casablanca')) {
+            $cleanLoc = 'Casablanca Airport (CMN)';
+        } elseif (str_contains($locName, 'Agadir')) {
+            $cleanLoc = 'Agadir Airport (AGA)';
+        } elseif (str_contains($locName, 'Tanger')) {
+            $cleanLoc = 'Tanger Airport (TNG)';
+        }
+
+        if ($locale === 'fr') {
+            $seoTitle = "Location Voiture " . str_replace(" Airport", "", $cleanLoc) . " Pas Cher | Car Airport";
+            $seoDescription = "Réservez votre voiture de location à " . $cleanLoc . " à partir de 250 DH/jour. Livraison gratuite à l'aéroport, assurance tous risques, kilométrage illimité et contact direct via WhatsApp.";
+        } else {
+            $seoTitle = "Rent a Car " . $cleanLoc . " | Best Rates - Car Airport Morocco";
+            $seoDescription = "Rent a car at " . $cleanLoc . " from 250 DH per day. Free airport terminal delivery, full comprehensive insurance, unlimited mileage, and direct WhatsApp confirmation.";
+        }
+
+        return view('home', compact('cars', 'searchParams', 'locale', 'extras', 'reviews', 'seoTitle', 'seoDescription'));
     }
 
     /**
@@ -144,8 +195,11 @@ class HomeController extends Controller
             ];
         });
 
+        $carName = $booking->car ? ($booking->car->brand . ' ' . $booking->car->model) : 'Partner Car';
+
         return response()->json([
             'status' => 'success',
+            'car_name' => $carName,
             'booking' => [
                 'id' => $booking->id,
                 'booking_reference' => $booking->booking_reference,

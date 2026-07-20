@@ -16,7 +16,7 @@ class SetLocale
     {
         $locale = $request->segment(1);
 
-        if (in_array($locale, ['en', 'fr'])) {
+        if (in_array($locale, ['en', 'fr', 'de'])) {
             App::setLocale($locale);
         } else {
             // Default to browser detection or fallback
@@ -40,6 +40,9 @@ class SetLocale
         foreach ($languages as $lang) {
             if (str_starts_with($lang, 'fr')) {
                 return 'fr';
+            }
+            if (str_starts_with($lang, 'de')) {
+                return 'de';
             }
             if (str_starts_with($lang, 'en')) {
                 return 'en';
