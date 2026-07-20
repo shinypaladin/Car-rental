@@ -364,6 +364,7 @@ class AdminController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
             'adjustment_type' => 'required|string', // percentage or flat_rate
             'value' => 'required|numeric',
+            'min_days' => 'nullable|integer|min:1',
         ]);
 
         SeasonalPrice::create([
@@ -373,6 +374,7 @@ class AdminController extends Controller
             'end_date' => $request->end_date,
             'adjustment_type' => $request->adjustment_type,
             'value' => $request->value,
+            'min_days' => $request->filled('min_days') ? intval($request->min_days) : 1,
         ]);
 
         return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Seasonal pricing rule saved.');
@@ -419,6 +421,7 @@ class AdminController extends Controller
                 'pickup_datetime_val' => 'required|string',
                 'return_datetime_val' => 'required|string',
                 'extras' => 'nullable|array',
+                'flight_number' => 'nullable|string|max:50',
             ]);
 
             // Parse ID: partner_{partner_id}_{partner_vehicle_id}
@@ -446,6 +449,7 @@ class AdminController extends Controller
                 'customer_phone' => $request->customer_phone,
                 'pickup_datetime' => $pickupDt->toDateTimeString(),
                 'return_datetime' => $returnDt->toDateTimeString(),
+                'flight_number' => $request->flight_number,
             ]);
 
             if (!$forwardResult || ($forwardResult['status'] ?? 'error') !== 'success') {
@@ -461,6 +465,7 @@ class AdminController extends Controller
                 'customer_phone' => $request->customer_phone,
                 'pickup_location' => $request->pickup_location_val,
                 'return_location' => $request->return_location_val ?? $request->pickup_location_val,
+                'flight_number' => $request->flight_number ? strtoupper(trim($request->flight_number)) : null,
                 'pickup_datetime' => $pickupDt,
                 'return_datetime' => $returnDt,
                 'total_price' => $matchedCar['total_price'],
@@ -486,6 +491,9 @@ class AdminController extends Controller
             $partnerMsg .= "Car: " . $matchedCar['brand'] . " " . $matchedCar['model'] . "\n";
             $partnerMsg .= "Pickup: " . $booking->pickup_location . " (" . $booking->pickup_datetime->format('Y-m-d H:i') . ")\n";
             $partnerMsg .= "Return: " . $booking->return_location . " (" . $booking->return_datetime->format('Y-m-d H:i') . ")\n";
+            if ($booking->flight_number) {
+                $partnerMsg .= "Flight Number: *" . $booking->flight_number . "*\n";
+            }
             $partnerMsg .= "Total Price: *" . $booking->total_price . " DH*\n\n";
             $partnerMsg .= "Please let me know how to proceed. Thank you!";
             $whatsappUrl = "https://wa.me/212600988632?text=" . urlencode($partnerMsg);
@@ -508,6 +516,7 @@ class AdminController extends Controller
             'pickup_datetime_val' => 'required|string',
             'return_datetime_val' => 'required|string',
             'extras' => 'nullable|array',
+            'flight_number' => 'nullable|string|max:50',
         ]);
 
         $car = Car::findOrFail($carIdInput);
@@ -535,6 +544,7 @@ class AdminController extends Controller
             'customer_phone' => $request->customer_phone,
             'pickup_location' => $request->pickup_location_val,
             'return_location' => $request->return_location_val ?? $request->pickup_location_val,
+            'flight_number' => $request->flight_number ? strtoupper(trim($request->flight_number)) : null,
             'pickup_datetime' => $pickupDt,
             'return_datetime' => $returnDt,
             'total_price' => $pricing['total_price'],
@@ -551,7 +561,6 @@ class AdminController extends Controller
             \Illuminate\Support\Facades\Log::error("Failed to send booking confirmation email: " . $e->getMessage());
         }
 
-        // Format WhatsApp text for local booking
         $localMsg = "Hello Car Airport Morocco! 🚗\n";
         $localMsg .= "I would like to confirm my reservation request.\n\n";
         $localMsg .= "Booking Ref: *" . $booking->booking_reference . "*\n";
@@ -560,6 +569,9 @@ class AdminController extends Controller
         $localMsg .= "Car: " . $car->brand . " " . $car->model . "\n";
         $localMsg .= "Pickup: " . $booking->pickup_location . " (" . $pickupDt->format('Y-m-d H:i') . ")\n";
         $localMsg .= "Return: " . $booking->return_location . " (" . $returnDt->format('Y-m-d H:i') . ")\n";
+        if ($booking->flight_number) {
+            $localMsg .= "Flight Number: *" . $booking->flight_number . "*\n";
+        }
         if (!empty($selectedExtras)) {
             $localMsg .= "Extras: " . implode(', ', $selectedExtras) . "\n";
         }
@@ -734,6 +746,7 @@ class AdminController extends Controller
             'api_url' => 'required|url|max:255',
             'api_key' => 'required|string|max:255',
             'markup_percent' => 'required|numeric|min:0|max:100',
+            'min_rating' => 'nullable|numeric|min:0|max:10',
         ]);
 
         $categoryMarkups = [
@@ -763,6 +776,7 @@ class AdminController extends Controller
             'category_markups' => $categoryMarkups,
             'allowed_companies'=> $allowed,
             'allowed_brands'   => $allowedBrands,
+            'min_rating'       => $request->filled('min_rating') ? (float) $request->min_rating : 7.0,
         ]);
 
         return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Partner site added successfully.');
@@ -778,6 +792,7 @@ class AdminController extends Controller
             'api_url' => 'required|url|max:255',
             'api_key' => 'required|string|max:255',
             'markup_percent' => 'required|numeric|min:0|max:100',
+            'min_rating' => 'nullable|numeric|min:0|max:10',
         ]);
 
         $categoryMarkups = [
@@ -806,6 +821,7 @@ class AdminController extends Controller
             'category_markups' => $categoryMarkups,
             'allowed_companies'=> $allowed,
             'allowed_brands'   => $allowedBrands,
+            'min_rating'       => $request->filled('min_rating') ? (float) $request->min_rating : null,
         ]);
 
         return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Partner site updated successfully.');

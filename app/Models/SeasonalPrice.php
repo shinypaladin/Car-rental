@@ -16,12 +16,14 @@ class SeasonalPrice extends Model
         'end_date',
         'adjustment_type',
         'value',
+        'min_days',
     ];
 
     protected $casts = [
         'start_date' => 'date',
         'end_date'   => 'date',
         'value'      => 'float',
+        'min_days'   => 'integer',
     ];
 
     /**

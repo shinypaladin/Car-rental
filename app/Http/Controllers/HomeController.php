@@ -124,6 +124,7 @@ class HomeController extends Controller
                 'days' => $pricing['days'] ?? 4,
                 'company_name' => $pCar['company_name'] ?? $pCar['partner_name'],
                 'company_logo' => $pCar['company_logo'] ?? null,
+                'company_rating' => $pCar['company_rating'] ?? null,
             ];
         }
 

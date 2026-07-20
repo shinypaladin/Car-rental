@@ -49,6 +49,6 @@ return [
     'explore_desc' => 'Des montagnes de l\'Atlas au désert du Sahara. Votre aventure commence avec la bonne voiture.',
     'discover_more' => 'Découvrir Plus',
     'customer_says' => 'Ce que disent nos clients',
-    'based_on' => 'Sur la base de 650+ avis',
+    'based_on' => 'Sur la base des avis Google Maps',
     'my_booking' => 'Ma Réservation',
 ];

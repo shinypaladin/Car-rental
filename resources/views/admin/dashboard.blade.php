@@ -784,6 +784,7 @@
                             <th>Vehicle Filter</th>
                             <th>Start Date</th>
                             <th>End Date</th>
+                            <th>Min Days</th>
                             <th>Adjustment</th>
                             <th>Value</th>
                             <th>Actions</th>
@@ -796,6 +797,7 @@
                             <td>{{ $rule->car ? $rule->car->brand . ' ' . $rule->car->model : 'All Vehicles' }}</td>
                             <td>{{ $rule->start_date }}</td>
                             <td>{{ $rule->end_date }}</td>
+                            <td style="text-align:center;"><strong>{{ $rule->min_days ?? 1 }}+ days</strong></td>
                             <td>{{ $rule->adjustment_type == 'percentage' ? 'Percentage' : 'Flat Price Override' }}</td>
                             <td>
                                 {{ $rule->adjustment_type == 'percentage' ? ($rule->value > 1.0 ? '+' . (($rule->value - 1.0)*100) . '%' : ($rule->value*100) . '%') : ($rule->value . ' DH') }}
@@ -855,6 +857,12 @@
                             <label>Value</label>
                             <input type="number" step="0.01" name="value" placeholder="e.g. 1.30 or 400" required>
                         </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Minimum Booking Duration (Days)</label>
+                        <input type="number" name="min_days" value="1" min="1" required>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">Only apply this rule for reservations lasting this number of days or longer.</span>
                     </div>
 
                     <button type="submit" class="btn-submit">Save Pricing Rule</button>

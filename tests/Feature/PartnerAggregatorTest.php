@@ -114,4 +114,56 @@ class PartnerAggregatorTest extends TestCase
         $this->assertEquals('new_key', $partner->api_key);
         $this->assertEquals(15.50, $partner->markup_percent);
     }
+
+    public function test_filters_partner_cars_by_minimum_company_rating()
+    {
+        $partner = PartnerSite::create([
+            'name' => 'Casablanca Agency',
+            'api_url' => 'https://casa-agency.com/api',
+            'api_key' => 'casa_key_123',
+            'markup_percent' => 10.00,
+            'active' => true,
+            'min_rating' => 7.5 // Only ratings >= 7.5 allowed
+        ]);
+
+        Http::fake([
+            'https://casa-agency.com/api/availability*' => Http::response([
+                'status' => 'success',
+                'vehicles' => [
+                    [
+                        'vehicle_id' => 101,
+                        'brand' => 'Dacia',
+                        'model' => 'Logan',
+                        'category' => 'Economy',
+                        'seats' => 5,
+                        'transmission' => 'Manual',
+                        'ac' => 'Yes',
+                        'rate_per_day' => 200,
+                        'total_price' => 1000,
+                        'company_name' => 'Low Rating Agency',
+                        'company_rating' => 6.4 // Should be filtered out
+                    ],
+                    [
+                        'vehicle_id' => 102,
+                        'brand' => 'Renault',
+                        'model' => 'Clio',
+                        'category' => 'Economy',
+                        'seats' => 5,
+                        'transmission' => 'Manual',
+                        'ac' => 'Yes',
+                        'rate_per_day' => 250,
+                        'total_price' => 1250,
+                        'company_name' => 'High Rating Agency',
+                        'company_rating' => 8.5 // Should be kept
+                    ]
+                ]
+            ], 200)
+        ]);
+
+        $cars = PartnerAggregator::fetchPartnerCars('2026-07-25 10:00', '2026-07-30 10:00');
+
+        $this->assertCount(1, $cars);
+        $this->assertEquals("partner_{$partner->id}_102", $cars[0]['id']);
+        $this->assertEquals(8.5, $cars[0]['company_rating']);
+    }
 }

@@ -18,6 +18,7 @@ class Booking extends Model
         'customer_phone',
         'pickup_location',
         'return_location',
+        'flight_number',
         'pickup_datetime',
         'return_datetime',
         'total_price',

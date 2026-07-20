@@ -41,6 +41,9 @@ class PartnerAggregator
                             'rate_per_day' => $pricing['average_daily_rate'],
                             'total_price' => $pricing['total_price'],
                             'image_path' => $lc->image_path,
+                            'company_name' => 'Loca Morocco',
+                            'company_logo' => 'https://via.placeholder.com/50',
+                            'company_rating' => 8.2, // Simulated company rating
                         ];
                     }
                 } else {
@@ -118,6 +121,14 @@ class PartnerAggregator
                         }
                     }
 
+                    // Filter out vehicle by company rating threshold if min_rating is set
+                    $companyRating = isset($car['company_rating']) ? (float) $car['company_rating'] : null;
+                    if ($partner->min_rating !== null && $companyRating !== null) {
+                        if ($companyRating < $partner->min_rating) {
+                            continue; // skip this car because its supplier company rating is too low
+                        }
+                    }
+
                     $allPartnerCars[] = [
                         'id' => $compositeId,
                         'brand' => $car['brand'],
@@ -136,6 +147,7 @@ class PartnerAggregator
                         'partner_vehicle_id' => $car['vehicle_id'],
                         'company_name' => $companyName,
                         'company_logo' => $companyLogo,
+                        'company_rating' => $companyRating,
                     ];
                 }
             } catch (\Exception $e) {

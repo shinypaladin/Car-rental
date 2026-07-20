@@ -22,7 +22,7 @@ class PricingEngine
         
         $totalPrice = 0;
         
-        // Fetch all active seasonal prices that overlap with the range
+        // Fetch all active seasonal/duration prices that overlap with the range
         $seasonalPrices = SeasonalPrice::where(function ($query) use ($start, $end) {
             $query->whereBetween('start_date', [$start->toDateString(), $end->toDateString()])
                   ->orWhereBetween('end_date', [$start->toDateString(), $end->toDateString()])
@@ -35,6 +35,10 @@ class PricingEngine
             $query->whereNull('car_id') // Global
                   ->orWhere('car_id', $car->id); // Car-specific
         })
+        ->where(function ($query) use ($days) {
+            $query->whereNull('min_days')
+                  ->orWhere('min_days', '<=', $days);
+        })
         ->get();
 
         // Calculate price day-by-day to handle changes mid-booking
@@ -45,6 +49,9 @@ class PricingEngine
             $dayRules = $seasonalPrices->filter(function ($rule) use ($currentDayDate) {
                 return $currentDayDate >= $rule->start_date->toDateString() && $currentDayDate <= $rule->end_date->toDateString();
             });
+
+            // Sort rules so that specific matching min_days take precedence (highest min_days first)
+            $dayRules = $dayRules->sortByDesc('min_days');
 
             $dayPrice = self::resolveDayPrice($car, $dayRules);
             $totalPrice += $dayPrice;

@@ -16,6 +16,7 @@ class PartnerSite extends Model
         'category_markups',
         'allowed_companies',
         'allowed_brands',
+        'min_rating',
     ];
 
     protected $casts = [
@@ -24,5 +25,6 @@ class PartnerSite extends Model
         'category_markups' => 'array',
         'allowed_companies' => 'array',
         'allowed_brands' => 'array',
+        'min_rating' => 'float',
     ];
 }

@@ -49,6 +49,6 @@ return [
     'explore_desc' => 'From the Atlas Mountains to the Sahara Desert. Your adventure starts with the right car.',
     'discover_more' => 'Discover More',
     'customer_says' => 'What our customers say',
-    'based_on' => 'Based on 650+ reviews',
+    'based_on' => 'Based on Google Maps reviews',
     'my_booking' => 'My Booking',
 ];

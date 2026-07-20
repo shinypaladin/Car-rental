@@ -49,6 +49,6 @@ return [
     'explore_desc' => 'Vom Atlasgebirge bis zur Sahara-Wüste. Ihr Abenteuer beginnt mit dem richtigen Auto.',
     'discover_more' => 'Mehr entdecken',
     'customer_says' => 'Was unsere Kunden sagen',
-    'based_on' => 'Basierend auf über 650 Bewertungen',
+    'based_on' => 'Basierend auf Google Maps-Bewertungen',
     'my_booking' => 'Meine Buchung',
 ];
