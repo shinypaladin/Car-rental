@@ -9,11 +9,11 @@ use Illuminate\Support\Facades\Log;
 class GoogleReviewsService
 {
     // Your Google Maps Place ID — extracted from your listing URL:
-    // https://maps.app.goo.gl/CBibZyc5L4ioDqkH7
-    // CID: 0x9eb9975bd3b279e3 → Place ID resolved via Places API
-    const PLACE_ID = 'ChIJfSegWAfv_w0R43Kys1uXm54';
+    // https://maps.app.goo.gl/JKPqLkv3JGXibkUH7
+    // CID: 0x9eb9975bd3b279e3 -> Resolved Place ID
+    const PLACE_ID = 'ChIJfTKLdQDvrw0R43my01uXuZ4';
 
-    const MAPS_URL = 'https://maps.app.goo.gl/CBibZyc5L4ioDqkH7';
+    const MAPS_URL = 'https://maps.app.goo.gl/JKPqLkv3JGXibkUH7';
 
     /**
      * Fetch Google reviews via the Places API (New).
@@ -42,10 +42,7 @@ class GoogleReviewsService
                 $response = Http::withHeaders([
                     'X-Goog-Api-Key'    => $apiKey,
                     'X-Goog-FieldMask'  => 'rating,userRatingCount,reviews',
-                ])->get($url, [
-                    'languageCode' => 'en',
-                    'maxResultCount' => 5,
-                ]);
+                ])->get($url);
 
                 if ($response->successful()) {
                     $data = $response->json();
@@ -54,16 +51,22 @@ class GoogleReviewsService
                     $count   = $data['userRatingCount'] ?? 0;
                     $rawReviews = $data['reviews'] ?? [];
 
-                    $reviews = collect($rawReviews)->map(function ($r) {
-                        $name = $r['authorAttribution']['displayName'] ?? 'Anonymous';
-                        return [
-                            'author'         => $name,
-                            'avatar_initial' => strtoupper(substr($name, 0, 1)),
-                            'text'           => $r['text']['text'] ?? '',
-                            'rating'         => $r['rating'] ?? 5,
-                            'time'           => $r['relativePublishTimeDescription'] ?? '',
-                        ];
-                    })->toArray();
+                    $reviews = collect($rawReviews)
+                        ->map(function ($r) {
+                            $name = $r['authorAttribution']['displayName'] ?? 'Anonymous';
+                            return [
+                                'author'         => $name,
+                                'avatar_initial' => strtoupper(substr($name, 0, 1)),
+                                'text'           => $r['text']['text'] ?? '',
+                                'rating'         => $r['rating'] ?? 5,
+                                'time'           => $r['relativePublishTimeDescription'] ?? '',
+                            ];
+                        })
+                        ->filter(function ($r) {
+                            return !empty(trim($r['text']));
+                        })
+                        ->values()
+                        ->toArray();
 
                     return [
                         'rating'  => $rating,
