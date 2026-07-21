@@ -1,0 +1,14 @@
+[
+    {
+        "level": "SEVERE",
+        "message": "http:\/\/127.0.0.1:8001\/images\/logo.png - Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "source": "network",
+        "timestamp": 1784444587387
+    },
+    {
+        "level": "SEVERE",
+        "message": "http:\/\/127.0.0.1:8001\/images\/logo.png - Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "source": "network",
+        "timestamp": 1784444601235
+    }
+]

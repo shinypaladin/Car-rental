@@ -1,0 +1,26 @@
+[
+    {
+        "level": "SEVERE",
+        "message": "http:\/\/127.0.0.1:8001\/images\/logo.png - Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "source": "network",
+        "timestamp": 1784444508220
+    },
+    {
+        "level": "SEVERE",
+        "message": "http:\/\/127.0.0.1:8001\/images\/dacia_duster.jpg - Failed to load resource: the server responded with a status of 404 (Not Found)",
+        "source": "network",
+        "timestamp": 1784444508782
+    },
+    {
+        "level": "SEVERE",
+        "message": "https:\/\/placehold.co\/200x50\/0f1d36\/c5a059?text=CAR+AIRPORT - Failed to load resource: net::ERR_NAME_NOT_RESOLVED",
+        "source": "network",
+        "timestamp": 1784444536717
+    },
+    {
+        "level": "SEVERE",
+        "message": "https:\/\/placehold.co\/400x250\/0f1d36\/c5a059?text=Dacia+Duster - Failed to load resource: net::ERR_NAME_NOT_RESOLVED",
+        "source": "network",
+        "timestamp": 1784444536717
+    }
+]
