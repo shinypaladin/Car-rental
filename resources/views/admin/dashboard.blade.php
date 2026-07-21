@@ -350,6 +350,7 @@
             <button class="tab-btn" onclick="switchTab('bookings-tab')" id="btn-bookings-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">📅 Reservation Log</button>
             <button class="tab-btn" onclick="switchTab('contacts-tab')" id="btn-contacts-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">💬 Contact Messages</button>
             <button class="tab-btn" onclick="switchTab('api-tab')" id="btn-api-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">🔑 API Integration</button>
+            <button class="tab-btn" onclick="switchTab('blog-tab')" id="btn-blog-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">📝 Blog & SEO Articles</button>
         </div>
 
         <!-- tab: Live Fleet Calendar (Gantt Chart Layout) -->
@@ -1349,6 +1350,139 @@
                         <button type="submit" class="btn-submit">Connect Partner</button>
                     </form>
                 </div>
+        </div>
+        </div>
+
+        <!-- tab 7: Blog & SEO Content Manager -->
+        <div id="blog-tab" class="tab-content" style="display: none;">
+            <div class="admin-grid" style="margin-bottom: 5rem;">
+                <!-- Left: Blog Posts Table -->
+                <div class="panel">
+                    <h2>Published Blog & SEO Articles</h2>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+                        Articles rank on Google search engines to drive organic tourist traffic to your website.
+                    </p>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Article Title</th>
+                                <th>Category</th>
+                                <th>Lang</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($blogPosts as $post)
+                            <tr>
+                                <td>
+                                    <strong>{{ $post->title }}</strong>
+                                    <div style="font-size:0.75rem; color:var(--text-muted);">/{{ $post->locale }}/blog/{{ $post->slug }}</div>
+                                </td>
+                                <td>
+                                    <span class="badge" style="background:#e0f2fe; color:#0369a1;">
+                                        {{ $post->category }}
+                                    </span>
+                                </td>
+                                <td><strong>{{ strtoupper($post->locale) }}</strong></td>
+                                <td>
+                                    <span style="background: {{ $post->is_published ? 'rgba(16, 185, 129, 0.15)' : '#fee2e2' }}; color: {{ $post->is_published ? '#10b981' : '#ef4444' }}; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 600; font-size: 0.75rem;">
+                                        {{ $post->is_published ? 'Published' : 'Draft' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="/{{ $post->locale }}/blog/{{ $post->slug }}" target="_blank" style="color: #10b981; margin-right: 0.5rem; text-decoration: none; font-weight: 600;">View</a>
+                                    <button type="button" onclick="openEditBlogModal({{ json_encode($post) }})" style="color:var(--accent-gold); background:none; border:none; cursor:pointer; font-weight:600; margin-right:0.5rem;">Edit</button>
+                                    <form action="/{{ $locale }}/admin/blog-posts/{{ $post->id }}" method="POST" onsubmit="return confirm('Delete this blog post?')" style="display:inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" style="color:red; background:none; border:none; cursor:pointer; font-weight:600;">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            @endforeach
+                            @if($blogPosts->isEmpty())
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-muted); font-style: italic; padding: 2rem;">
+                                    No blog posts created yet.
+                                </td>
+                            </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Right: Create New Blog Post Form -->
+                <div class="panel">
+                    <h2>Publish New Blog Article</h2>
+                    <form action="/{{ $locale }}/admin/blog-posts" method="POST">
+                        @csrf
+                        <div class="form-group">
+                            <label>Article Title</label>
+                            <input type="text" name="title" placeholder="e.g. 10 Essential Driving Tips for Marrakech" required>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem;">
+                            <div class="form-group" style="flex: 1;">
+                                <label>Category</label>
+                                <select name="category">
+                                    <option value="Airport Guide">Airport Guide</option>
+                                    <option value="Driving Tips" selected>Driving Tips</option>
+                                    <option value="Travel Guide">Travel Guide</option>
+                                    <option value="Car Rental Advice">Car Rental Advice</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label>Language</label>
+                                <select name="locale">
+                                    <option value="en">English (en)</option>
+                                    <option value="fr">Français (fr)</option>
+                                    <option value="de">Deutsch (de)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Featured Image URL</label>
+                            <input type="text" name="featured_image" placeholder="/images/marrakech_bg.jpg">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Short Excerpt / Summary</label>
+                            <textarea name="excerpt" rows="2" style="width: 100%; padding: 0.7rem; border: 1px solid var(--border-color); border-radius: 6px;" placeholder="Brief 1-2 sentence description shown in preview cards..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Full Content (HTML / Text)</label>
+                            <textarea name="content" rows="8" required style="width: 100%; padding: 0.7rem; border: 1px solid var(--border-color); border-radius: 6px;" placeholder="Write article content... You can use HTML tags like <h2>, <p>, <ul>, <li>"></textarea>
+                        </div>
+
+                        <div style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 1rem;">
+                            <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 0.75rem;">🔍 Search Engine Optimization (SEO)</h3>
+                            <div class="form-group">
+                                <label>Meta Title (SEO Title)</label>
+                                <input type="text" name="meta_title" placeholder="e.g. Marrakech Airport Car Rental Guide 2026">
+                            </div>
+                            <div class="form-group">
+                                <label>Meta Description</label>
+                                <input type="text" name="meta_description" placeholder="e.g. Rent a car at Marrakech Menara Airport without hidden fees...">
+                            </div>
+                            <div class="form-group">
+                                <label>Meta Keywords (Comma separated)</label>
+                                <input type="text" name="meta_keywords" placeholder="rent car marrakech, airport car hire morocco">
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label style="display: flex; gap: 0.5rem; align-items: center; cursor: pointer; font-weight: 600;">
+                                <input type="checkbox" name="is_published" value="1" checked style="width: auto;"> Publish Immediately
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn-submit">Publish Article</button>
+                    </form>
+                </div>
             </div>
         </div>
 
@@ -1773,12 +1907,14 @@
             const editExtraModal = document.getElementById('editExtraModal');
             const editPartnerModal = document.getElementById('editPartnerModal');
             const editApiKeyModal = document.getElementById('editApiKeyModal');
+            const editBlogModal = document.getElementById('editBlogModal');
             if (event.target == editModal) closeEditModal();
             if (event.target == manualModal) closeManualBookingModal();
             if (event.target == visitsModal) closeVisitsModal();
             if (event.target == editExtraModal) closeEditExtraModal();
             if (event.target == editPartnerModal) closeEditPartnerModal();
             if (event.target == editApiKeyModal) closeEditApiKeyModal();
+            if (event.target == editBlogModal) closeEditBlogModal();
         }
 
         // --- Revenue Month Filter ---
@@ -1947,6 +2083,27 @@
 
         function closeEditApiKeyModal() {
             document.getElementById('editApiKeyModal').style.display = 'none';
+        }
+
+        // --- Edit Blog Post Modal ---
+        function openEditBlogModal(post) {
+            document.getElementById('editBlogForm').action = '/' + locale + '/admin/blog-posts/update/' + post.id;
+            document.getElementById('edit_blog_title').value = post.title;
+            document.getElementById('edit_blog_category').value = post.category;
+            document.getElementById('edit_blog_locale').value = post.locale;
+            document.getElementById('edit_blog_featured_image').value = post.featured_image || '';
+            document.getElementById('edit_blog_excerpt').value = post.excerpt || '';
+            document.getElementById('edit_blog_content').value = post.content || '';
+            document.getElementById('edit_blog_meta_title').value = post.meta_title || '';
+            document.getElementById('edit_blog_meta_description').value = post.meta_description || '';
+            document.getElementById('edit_blog_meta_keywords').value = post.meta_keywords || '';
+            document.getElementById('edit_blog_is_published').checked = post.is_published == 1;
+
+            document.getElementById('editBlogModal').style.display = 'flex';
+        }
+
+        function closeEditBlogModal() {
+            document.getElementById('editBlogModal').style.display = 'none';
         }
     </script>
 
@@ -2130,6 +2287,80 @@
                 </div>
                 
                 <button type="submit" class="btn-submit">Save API Key Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Blog Post Modal -->
+    <div id="editBlogModal" class="modal">
+        <div class="modal-content" style="max-width: 750px;">
+            <button onclick="closeEditBlogModal()" class="modal-close">&times;</button>
+            <h2 style="margin-bottom: 1.5rem; color: var(--primary-dark); font-family: 'Outfit', sans-serif;">Edit Blog Article</h2>
+            <form id="editBlogForm" method="POST" action="">
+                @csrf
+                <div class="form-group">
+                    <label>Article Title</label>
+                    <input type="text" name="title" id="edit_blog_title" required>
+                </div>
+
+                <div style="display: flex; gap: 1rem;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Category</label>
+                        <select name="category" id="edit_blog_category">
+                            <option value="Airport Guide">Airport Guide</option>
+                            <option value="Driving Tips">Driving Tips</option>
+                            <option value="Travel Guide">Travel Guide</option>
+                            <option value="Car Rental Advice">Car Rental Advice</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Language</label>
+                        <select name="locale" id="edit_blog_locale">
+                            <option value="en">English (en)</option>
+                            <option value="fr">Français (fr)</option>
+                            <option value="de">Deutsch (de)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Featured Image URL</label>
+                    <input type="text" name="featured_image" id="edit_blog_featured_image">
+                </div>
+
+                <div class="form-group">
+                    <label>Short Excerpt / Summary</label>
+                    <textarea name="excerpt" id="edit_blog_excerpt" rows="2" style="width: 100%; padding: 0.7rem; border: 1px solid var(--border-color); border-radius: 6px;"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Full Content (HTML / Text)</label>
+                    <textarea name="content" id="edit_blog_content" rows="8" required style="width: 100%; padding: 0.7rem; border: 1px solid var(--border-color); border-radius: 6px;"></textarea>
+                </div>
+
+                <div style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 1rem;">
+                    <h3 style="font-size: 0.9rem; font-weight: 700; color: var(--primary-dark); margin-bottom: 0.75rem;">🔍 Search Engine Optimization (SEO)</h3>
+                    <div class="form-group">
+                        <label>Meta Title (SEO Title)</label>
+                        <input type="text" name="meta_title" id="edit_blog_meta_title">
+                    </div>
+                    <div class="form-group">
+                        <label>Meta Description</label>
+                        <input type="text" name="meta_description" id="edit_blog_meta_description">
+                    </div>
+                    <div class="form-group">
+                        <label>Meta Keywords</label>
+                        <input type="text" name="meta_keywords" id="edit_blog_meta_keywords">
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label style="display: flex; gap: 0.5rem; align-items: center; cursor: pointer; font-weight: 600;">
+                        <input type="checkbox" name="is_published" id="edit_blog_is_published" value="1" style="width: auto;"> Publish Article
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-submit">Save Article Changes</button>
             </form>
         </div>
     </div>

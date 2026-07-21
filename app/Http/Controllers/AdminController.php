@@ -131,11 +131,15 @@ class AdminController extends Controller
         // Partner Sites
         $partnerSites = \App\Models\PartnerSite::orderBy('created_at', 'desc')->get();
 
+        // Blog Posts
+        $blogPosts = \App\Models\BlogPost::orderBy('created_at', 'desc')->get();
+
         return view('admin.dashboard', compact(
             'cars', 'bookings', 'monthBookings', 'seasonalPrices', 'locale',
             'visits24h', 'visits7d', 'visits30d', 'totalMonthlyExpenses',
             'topCountries', 'allVisits', 'expenses', 'automatedExpensesSum',
             'revenueByMonth', 'extras', 'contactRequests', 'apiKeys', 'partnerSites',
+            'blogPosts',
             'selectedMonth', 'selectedMonthData', 'monthOptions', 'filterDate'
         ));
     }
@@ -836,5 +840,82 @@ class AdminController extends Controller
         $partner->delete();
 
         return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Partner site removed successfully.');
+    }
+
+    /**
+     * Store new Blog Post.
+     */
+    public function storeBlogPost(Request $request, $locale = 'en')
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+        ]);
+
+        $slug = \Illuminate\Support\Str::slug($request->title);
+        $originalSlug = $slug;
+        $count = 1;
+        while (\App\Models\BlogPost::where('slug', $slug)->exists()) {
+            $slug = $originalSlug . '-' . $count++;
+        }
+
+        \App\Models\BlogPost::create([
+            'title' => $request->title,
+            'slug' => $slug,
+            'locale' => $request->input('locale', $locale),
+            'category' => $request->input('category', 'Travel Guide'),
+            'excerpt' => $request->excerpt,
+            'content' => $request->content,
+            'featured_image' => $request->featured_image,
+            'author' => $request->input('author', 'Car Airport Morocco Team'),
+            'read_time_minutes' => $request->input('read_time_minutes', 5),
+            'meta_title' => $request->meta_title ?: $request->title,
+            'meta_description' => $request->meta_description ?: $request->excerpt,
+            'meta_keywords' => $request->meta_keywords,
+            'is_published' => $request->has('is_published'),
+        ]);
+
+        return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Blog post created successfully.');
+    }
+
+    /**
+     * Update existing Blog Post.
+     */
+    public function updateBlogPost(Request $request, $locale = 'en', $id)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+        ]);
+
+        $post = \App\Models\BlogPost::findOrFail($id);
+
+        $post->update([
+            'title' => $request->title,
+            'locale' => $request->input('locale', $locale),
+            'category' => $request->input('category', 'Travel Guide'),
+            'excerpt' => $request->excerpt,
+            'content' => $request->content,
+            'featured_image' => $request->featured_image,
+            'author' => $request->input('author', 'Car Airport Morocco Team'),
+            'read_time_minutes' => $request->input('read_time_minutes', 5),
+            'meta_title' => $request->meta_title,
+            'meta_description' => $request->meta_description,
+            'meta_keywords' => $request->meta_keywords,
+            'is_published' => $request->has('is_published'),
+        ]);
+
+        return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Blog post updated successfully.');
+    }
+
+    /**
+     * Delete Blog Post.
+     */
+    public function deleteBlogPost($locale = 'en', $id)
+    {
+        $post = \App\Models\BlogPost::findOrFail($id);
+        $post->delete();
+
+        return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Blog post deleted successfully.');
     }
 }

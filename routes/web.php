@@ -42,6 +42,10 @@ Route::group([
     Route::get('/privacy', [HomeController::class, 'privacy'])->name('privacy');
     Route::get('/cookie', [HomeController::class, 'cookie'])->name('cookie');
 
+    // Public Blog Routes
+    Route::get('/blog', [\App\Http\Controllers\BlogController::class, 'index'])->name('blog.index');
+    Route::get('/blog/{slug}', [\App\Http\Controllers\BlogController::class, 'show'])->name('blog.show');
+
 
     // Public Manage Booking routes
     Route::get('/booking/retrieve', [HomeController::class, 'retrieveBooking'])->name('booking.retrieve');
@@ -95,6 +99,11 @@ Route::group([
         Route::post('/partner-sites/update/{id}', [AdminController::class, 'updatePartnerSite'])->name('admin.partners.update');
         Route::delete('/partner-sites/{id}', [AdminController::class, 'deletePartnerSite'])->name('admin.partners.delete');
         Route::get('/partner-sites/{id}/companies', [\App\Http\Controllers\PartnerController::class, 'fetchCompanies'])->name('admin.partners.companies');
+
+        // Blog Post Management
+        Route::post('/blog-posts', [AdminController::class, 'storeBlogPost'])->name('admin.blog.store');
+        Route::post('/blog-posts/update/{id}', [AdminController::class, 'updateBlogPost'])->name('admin.blog.update');
+        Route::delete('/blog-posts/{id}', [AdminController::class, 'deleteBlogPost'])->name('admin.blog.delete');
     });
 
     // Web DB installer (accessible at /en/install-db or /fr/install-db)

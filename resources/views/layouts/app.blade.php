@@ -260,9 +260,10 @@ footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem
             
             <nav>
                 <ul>
-                    <li><a href="#cars">{{ __('messages.featured_cars') }}</a></li>
-                    <li><a href="#why-choose">{{ __('messages.why_choose_title') }}</a></li>
-                    <li><a href="#testimonials">{{ __('messages.customer_says') }}</a></li>
+                    <li><a href="/{{ $locale }}#cars">{{ __('messages.featured_cars') }}</a></li>
+                    <li><a href="/{{ $locale }}#why-choose">{{ __('messages.why_choose_title') }}</a></li>
+                    <li><a href="/{{ $locale }}#testimonials">{{ __('messages.customer_says') }}</a></li>
+                    <li><a href="/{{ $locale }}/blog">Blog & Guides</a></li>
                 </ul>
             </nav>
             
