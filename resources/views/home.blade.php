@@ -52,7 +52,6 @@
                         <option value="Marrakech Airport (RAK)" {{ $searchParams['pickup_location'] == 'Marrakech Airport (RAK)' ? 'selected' : '' }}>Marrakech Airport (RAK)</option>
                         <option value="Casablanca Airport (CMN)" {{ $searchParams['pickup_location'] == 'Casablanca Airport (CMN)' ? 'selected' : '' }}>Casablanca Airport (CMN)</option>
                         <option value="Agadir Airport (AGA)" {{ $searchParams['pickup_location'] == 'Agadir Airport (AGA)' ? 'selected' : '' }}>Agadir Airport (AGA)</option>
-                        <option value="Tanger Airport (TNG)" {{ $searchParams['pickup_location'] == 'Tanger Airport (TNG)' ? 'selected' : '' }}>Tanger Airport (TNG)</option>
                     </select>
                 </div>
                 <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
@@ -68,7 +67,6 @@
                         <option value="Marrakech Airport (RAK)">Marrakech Airport (RAK)</option>
                         <option value="Casablanca Airport (CMN)">Casablanca Airport (CMN)</option>
                         <option value="Agadir Airport (AGA)">Agadir Airport (AGA)</option>
-                        <option value="Tanger Airport (TNG)">Tanger Airport (TNG)</option>
                     </select>
                 </div>
             </div>
@@ -179,20 +177,6 @@
             <div style="font-size: 0.78rem; color: var(--accent-gold); font-weight: 700; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.5rem; display: flex; justify-content: space-between;">
                 <span>🏄 Beach & Surf Delivery</span>
                 <span>From 360 DH/day</span>
-            </div>
-        </div>
-
-        <!-- Tangier -->
-        <div class="map-city-card" onclick="selectCityMap('Tanger Airport (TNG)')" id="city-card-tng" style="background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 1.25rem; cursor: pointer; transition: all 0.3s ease; position: relative;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                <span style="font-size: 1.6rem;">⚓</span>
-                <span style="background: rgba(255,255,255,0.15); color: white; font-size: 0.7rem; font-weight: 800; padding: 0.2rem 0.5rem; border-radius: 4px;">TNG AIRPORT</span>
-            </div>
-            <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700; color: white; margin-bottom: 0.25rem;">Tangier</h3>
-            <p style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 0.75rem;">Ibn Battouta Airport (TNG)</p>
-            <div style="font-size: 0.78rem; color: var(--accent-gold); font-weight: 700; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.5rem; display: flex; justify-content: space-between;">
-                <span>🌊 North Coast Pick-up</span>
-                <span>From 370 DH/day</span>
             </div>
         </div>
     </div>
