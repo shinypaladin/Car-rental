@@ -262,9 +262,10 @@ footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem
             
             <nav>
                 <ul>
-                    <li><a href="#cars"><?php echo e(__('messages.featured_cars')); ?></a></li>
-                    <li><a href="#why-choose"><?php echo e(__('messages.why_choose_title')); ?></a></li>
-                    <li><a href="#testimonials"><?php echo e(__('messages.customer_says')); ?></a></li>
+                    <li><a href="/<?php echo e($locale); ?>#cars"><?php echo e(__('messages.featured_cars')); ?></a></li>
+                    <li><a href="/<?php echo e($locale); ?>#why-choose"><?php echo e(__('messages.why_choose_title')); ?></a></li>
+                    <li><a href="/<?php echo e($locale); ?>#testimonials"><?php echo e(__('messages.customer_says')); ?></a></li>
+                    <li><a href="/<?php echo e($locale); ?>/blog">Blog & Guides</a></li>
                 </ul>
             </nav>
             
