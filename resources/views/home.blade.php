@@ -373,50 +373,9 @@
                 <h3>{{ __('messages.reason_4_title') }}</h3>
                 <p>{{ __('messages.reason_4_desc') }}</p>
             </div>
-            
-                        ❄️ {{ __('messages.ac') }}
-                    </div>
-                    <div class="spec-item">
-                        🚪 5 Doors
-                    </div>
-                    <div class="spec-item">
-                        🧳 {{ $car->category === 'SUV' ? '4' : ($car->category === 'Van' ? '5' : ($car->category === 'Luxury' ? '3' : '2')) }} Bags
-                    </div>
-                </div>
-                
-                <div class="car-price-row">
-                    <div class="price-box">
-                        <div class="price-amount"><span class="price-val" data-base-mad="{{ $car->display_price }}">{{ round($car->display_price) }}</span> <span class="currency-label">DH</span> <span>/ {{ __('messages.day') }}</span></div>
-                        @if(isset($car->total_price) && $car->days > 1)
-                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">Total: <span class="price-val" data-base-mad="{{ $car->total_price }}">{{ round($car->total_price) }}</span> <span class="currency-label">DH</span> ({{ $car->days }} days)</div>
-                        @endif
-                    </div>
-                    
-                    <div class="action-buttons">
-                        <a href="#" class="book-btn" onclick="openBookingModal('{{ $car->id }}', '{{ $car->brand }} {{ $car->model }}', '{{ $car->display_price }}')">
-                            {{ __('messages.book_now') }}
-                        </a>
-                        <!-- WHATSAPP CTA - Formats prefilled request automatically -->
-                        <a href="#" class="whatsapp-btn" data-car="{{ $car->brand }} {{ $car->model }}" data-price="{{ $car->display_price }}" data-phone="{{ config('app.whatsapp_phone', '+212600988632') }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                                <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.977h.004c4.368 0 7.926-3.559 7.93-7.93a7.897 7.897 0 0 0-2.33-5.615zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.69-4.98c-.202-.101-1.194-.588-1.378-.653-.185-.066-.32-.099-.455.101-.134.2-.522.653-.64.789-.118.135-.235.15-.437.05-.202-.101-.85-.313-1.619-.998-.598-.534-1.002-1.195-1.12-1.395-.118-.2-.012-.307.088-.407.09-.09.202-.234.302-.35.1-.117.135-.198.202-.33.067-.133.034-.25-.017-.35-.05-.1-.455-1.096-.622-1.498-.163-.393-.328-.34-.456-.34-.117-.006-.252-.008-.387-.008-.135 0-.355.05-.54.254-.185.2-.705.688-.705 1.68 0 1 .725 1.966.827 2.1 0 .135 1.425 2.18 3.453 3.06.48.21.854.336 1.146.429.482.153.92.13 1.27.077.39-.058 1.194-.488 1.362-.958.168-.47.168-.872.118-.957-.05-.084-.186-.135-.388-.236z"/>
-                            </svg>
-                            {{ __('messages.book_whatsapp') }}
-                        </a>
-                    </div>
-                </div>
-            </div>
         </div>
-        @endforeach
     </div>
 </section>
-
-<!-- Why Choose Us -->
-<section class="why-choose" id="why-choose">
-    <div class="section-container">
-        <h2 style="text-align: center; font-family: var(--font-heading); font-size: 2.2rem; color: var(--primary-blue); margin-bottom: 3rem;">
-            {{ __('messages.why_choose_title') }}
-        </h2>
         
         <div class="why-choose-grid">
             <div class="why-card">
