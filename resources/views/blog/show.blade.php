@@ -20,10 +20,23 @@
         <h1 style="font-family: var(--font-heading); font-size: 2.25rem; font-weight: 800; line-height: 1.25; color: var(--text-dark); margin-bottom: 1rem;">
             {{ $post->title }}
         </h1>
-        <div style="display: flex; gap: 1.5rem; font-size: 0.88rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
-            <span>✍️ {{ $post->author }}</span>
-            <span>⏱️ {{ $post->read_time_minutes }} min read</span>
-            <span>📅 Published on {{ $post->created_at->format('F d, Y') }}</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+            <div style="display: flex; gap: 1.5rem; font-size: 0.88rem; color: var(--text-muted);">
+                <span>✍️ {{ $post->author }}</span>
+                <span>⏱️ {{ $post->read_time_minutes }} min read</span>
+                <span>📅 Published on {{ $post->created_at->format('F d, Y') }}</span>
+            </div>
+            
+            @if(!empty($availableTranslations) && count($availableTranslations) > 1)
+            <div style="display: flex; gap: 0.5rem; align-items: center; font-size: 0.82rem;">
+                <span style="color: var(--text-muted); font-weight: 600;">Read in:</span>
+                @foreach($availableTranslations as $langKey => $langSlug)
+                    <a href="/{{ $langKey }}/blog/{{ $langSlug }}" style="padding: 0.2rem 0.55rem; border-radius: 4px; text-decoration: none; font-weight: 700; font-size: 0.78rem; {{ $langKey === $locale ? 'background: var(--accent-gold); color: var(--primary-blue);' : 'background: var(--bg-light); color: var(--text-dark); border: 1px solid var(--border-color);' }}">
+                        {{ strtoupper($langKey) }}
+                    </a>
+                @endforeach
+            </div>
+            @endif
         </div>
     </div>
 
