@@ -141,16 +141,16 @@ nav a:hover{color:var(--accent-gold)}
 .promo-link:hover{background-color:var(--accent-gold);color:var(--text-white)}
 .testimonials{background-color:var(--bg-white);border:1px solid var(--border-color);border-radius:16px;padding:3rem;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;justify-content:space-between}
 .testimonials-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem}
-.testimonials-header h2{font-family:var(--font-heading);font-size:1.6rem;color:var(--primary-blue)}
-.rating-summary{text-align:right}
-.rating-number{font-size:2.2rem;font-weight:800;color:var(--primary-blue);line-height:1}
+.testimonials-header h2{font-family:var(--font-heading);font-size:1.6rem;color:var(--text-dark)}
+.rating-summary{text-align:right;color:var(--text-dark)}
+.rating-number{font-size:2.2rem;font-weight:800;color:var(--text-dark);line-height:1}
 .stars{color:#ffc107;margin:0.25rem 0}
 .rating-platforms{display:flex;gap:1rem;font-size:0.75rem;color:var(--text-muted)}
 .review-slider{position:relative;border-top:1px solid var(--border-color);padding-top:1.5rem}
 .review-text{font-style:italic;color:var(--text-muted);font-size:0.95rem;margin-bottom:1.5rem}
 .reviewer-meta{display:flex;align-items:center;gap:1rem}
-.reviewer-avatar{width:40px;height:40px;border-radius:50%;background-color:#faf7f2;border:1px solid var(--accent-gold);display:flex;justify-content:center;align-items:center;font-weight:700;color:var(--accent-gold)}
-.reviewer-info h4{font-size:0.9rem;font-weight:700;color:var(--primary-blue)}
+.reviewer-avatar{width:40px;height:40px;border-radius:50%;background-color:var(--bg-light);border:1px solid var(--accent-gold);display:flex;justify-content:center;align-items:center;font-weight:700;color:var(--accent-gold)}
+.reviewer-info h4{font-size:0.9rem;font-weight:700;color:var(--text-dark)}
 .reviewer-info span{font-size:0.75rem;color:var(--text-muted)}
 footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem 1.5rem 2rem}
 .footer-top{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:3rem;flex-wrap:wrap;gap:2rem}

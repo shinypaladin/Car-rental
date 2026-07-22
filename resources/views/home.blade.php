@@ -537,7 +537,7 @@ function filterFaqs() {
 <section class="section-container" id="pickup-guide" style="margin-top: 5rem; margin-bottom: 5rem;">
     <div style="background: var(--bg-white); border: 1px solid var(--border-color); border-radius: 12px; padding: 2.5rem; box-shadow: var(--shadow-sm); display: grid; grid-template-columns: 1.2fr 1fr; gap: 2.5rem; align-items: center; min-height: 400px;">
         <div>
-            <h2 style="font-family: var(--font-heading); font-size: 2rem; color: var(--primary-blue); margin-bottom: 1rem;">Airport Pick-up Locations</h2>
+            <h2 style="font-family: var(--font-heading); font-size: 2rem; color: var(--text-dark); margin-bottom: 1rem;">Airport Pick-up Locations</h2>
             <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.6;">
                 We offer free, personalized <strong>Meet & Greet service</strong> at all major Moroccan airports. 
                 Our coordinator will wait for you directly outside the customs exit terminal holding a signboard with your name on it.
@@ -555,6 +555,13 @@ function filterFaqs() {
                     <div>
                         <strong style="color: var(--text-dark); display: block; font-size: 0.9rem;">Casablanca Mohammed V Airport (CMN)</strong>
                         <span style="color: var(--text-muted); font-size: 0.85rem;">Terminal 1 & 2 Arrivals terminal exit doors.</span>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+                    <span style="font-size: 1.25rem;">📍</span>
+                    <div>
+                        <strong style="color: var(--text-dark); display: block; font-size: 0.9rem;">Agadir Al Massira Airport (AGA)</strong>
+                        <span style="color: var(--text-muted); font-size: 0.85rem;">Arrivals exit terminal & Taghazout coastal delivery.</span>
                     </div>
                 </div>
             </div>
