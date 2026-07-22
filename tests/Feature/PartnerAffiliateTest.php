@@ -29,9 +29,20 @@ class PartnerAffiliateTest extends TestCase
 
     public function test_partner_aggregator_maps_affiliate_attributes()
     {
+        \App\Models\Car::create([
+            'brand' => 'Dacia',
+            'model' => 'Logan',
+            'category' => 'Economy',
+            'seats' => 5,
+            'transmission' => 'Manual',
+            'base_price' => 250,
+            'quantity' => 2,
+            'display_order' => 1
+        ]);
+
         $partner = PartnerSite::create([
             'name' => 'Affiliate Agency',
-            'api_url' => 'http://127.0.0.1:8000/api',
+            'api_url' => 'http://localhost:8000/api',
             'api_key' => 'test_key',
             'markup_percent' => 10,
             'active' => true,
