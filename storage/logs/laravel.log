@@ -12393,3 +12393,7 @@
 #61 C:/Users/ASUS/.gemini/antigravity/brain/6f287ace-ccbf-4b72-81c0-e0c6690836cd/scratch/debug_apikey.php(26): Illuminate/Foundation/Http/Kernel->handle(Object(Illuminate/Http/Request))
 #62 {main}
 "} 
+[2026-07-22 21:34:40] testing.ERROR: Maximum execution time of 30 seconds exceeded {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 30 seconds exceeded at C:/Users/ASUS/Documents/GitHub/Car-rental/storage/framework/views/1744687ac98c528b1c9a1e21bb21abcd.php:1)
+[stacktrace]
+#0 {main}
+"} 
