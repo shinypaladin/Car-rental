@@ -17,6 +17,8 @@ class PartnerSite extends Model
         'allowed_companies',
         'allowed_brands',
         'min_rating',
+        'is_affiliate',
+        'affiliate_url',
     ];
 
     protected $casts = [
@@ -26,5 +28,6 @@ class PartnerSite extends Model
         'allowed_companies' => 'array',
         'allowed_brands' => 'array',
         'min_rating' => 'float',
+        'is_affiliate' => 'boolean',
     ];
 }

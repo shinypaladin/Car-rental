@@ -9,6 +9,18 @@
     <title><?php echo $__env->yieldContent('title', 'Car Airport Morocco - Rent a Car at Marrakech Airport'); ?></title>
     <meta name="description" content="<?php echo $__env->yieldContent('meta_description', 'Rent a car at Marrakech Airport from 350 DH per day. Free airport delivery, full insurance, unlimited mileage, and direct WhatsApp booking.'); ?>">
     
+    <!-- Automatic Browser / System Dark Mode Detection -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
+    
     <!-- Dynamic hreflang Alternate Tags -->
     <?php echo \App\Helpers\SeoHelper::getAlternateLinks(); ?>
 

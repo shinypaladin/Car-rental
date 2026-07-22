@@ -776,6 +776,8 @@ class AdminController extends Controller
             'api_key'          => $request->api_key,
             'markup_percent'   => $request->markup_percent,
             'active'           => true,
+            'is_affiliate'     => $request->has('is_affiliate'),
+            'affiliate_url'    => $request->affiliate_url,
             'display_order'    => $request->input('display_order', 99),
             'category_markups' => $categoryMarkups,
             'allowed_companies'=> $allowed,
@@ -797,6 +799,7 @@ class AdminController extends Controller
             'api_key' => 'required|string|max:255',
             'markup_percent' => 'required|numeric|min:0|max:100',
             'min_rating' => 'nullable|numeric|min:0|max:10',
+            'affiliate_url' => 'nullable|url|max:255',
         ]);
 
         $categoryMarkups = [
@@ -821,6 +824,8 @@ class AdminController extends Controller
             'api_url'          => $request->api_url,
             'api_key'          => $request->api_key,
             'markup_percent'   => $request->markup_percent,
+            'is_affiliate'     => $request->has('is_affiliate'),
+            'affiliate_url'    => $request->affiliate_url,
             'display_order'    => $request->input('display_order', 99),
             'category_markups' => $categoryMarkups,
             'allowed_companies'=> $allowed,

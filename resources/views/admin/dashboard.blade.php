@@ -1336,6 +1336,23 @@
                             </div>
                         </div>
 
+                        <div style="border: 1px solid var(--border-color); border-radius: 6px; padding: 1rem; margin-bottom: 1rem; background: var(--bg-light);">
+                            <div class="form-group" style="margin-bottom: 0.5rem;">
+                                <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 700; color: var(--text-dark);">
+                                    <input type="checkbox" name="is_affiliate" value="1" style="width: auto; cursor: pointer;" onchange="document.getElementById('addAffiliateUrlGroup').style.display = this.checked ? 'block' : 'none'">
+                                    🔗 Affiliate / External Redirect Partner
+                                </label>
+                                <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">
+                                    When checked, WhatsApp CTA is hidden and clicking "Book Online" redirects customers directly to the partner's external website.
+                                </span>
+                            </div>
+
+                            <div class="form-group" id="addAffiliateUrlGroup" style="display: none; margin-top: 0.5rem;">
+                                <label style="font-size: 0.78rem;">Affiliate / External Booking Page URL</label>
+                                <input type="url" name="affiliate_url" placeholder="e.g. https://partner-site.com/book?ref=my_affiliate_id">
+                            </div>
+                        </div>
+
                         <div class="form-group">
                             <label>Allowed Car Brands / Companies (Optional - Comma separated)</label>
                             <input type="text" name="allowed_companies_csv" placeholder="e.g. Hertz, Avis, Sixt, Aircar">
@@ -1966,6 +1983,9 @@
             document.getElementById('edit_partner_api_key').value = partner.api_key;
             document.getElementById('edit_partner_markup_percent').value = partner.markup_percent;
             document.getElementById('edit_partner_display_order').value = partner.display_order ?? 99;
+            document.getElementById('edit_partner_is_affiliate').checked = partner.is_affiliate == 1;
+            document.getElementById('edit_partner_affiliate_url').value = partner.affiliate_url || '';
+            document.getElementById('editAffiliateUrlGroup').style.display = partner.is_affiliate == 1 ? 'block' : 'none';
             
             // Populate allowed companies and brands CSV hidden fields
             const allowed = partner.allowed_companies || [];
@@ -2213,6 +2233,23 @@
                 <div class="form-group">
                     <label>Global Commission Markup (%)</label>
                     <input type="number" name="markup_percent" id="edit_partner_markup_percent" min="0" max="100" required>
+                </div>
+
+                <div style="border: 1px solid var(--border-color); border-radius: 6px; padding: 1rem; margin-bottom: 1rem; background: var(--bg-light);">
+                    <div class="form-group" style="margin-bottom: 0.5rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 700; color: var(--text-dark);">
+                            <input type="checkbox" name="is_affiliate" id="edit_partner_is_affiliate" value="1" style="width: auto; cursor: pointer;" onchange="document.getElementById('editAffiliateUrlGroup').style.display = this.checked ? 'block' : 'none'">
+                            🔗 Affiliate / External Redirect Partner
+                        </label>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 0.25rem;">
+                            When checked, WhatsApp CTA is hidden and clicking "Book Online" redirects customers directly to the partner's external website.
+                        </span>
+                    </div>
+
+                    <div class="form-group" id="editAffiliateUrlGroup" style="display: none; margin-top: 0.5rem;">
+                        <label style="font-size: 0.78rem;">Affiliate / External Booking Page URL</label>
+                        <input type="url" name="affiliate_url" id="edit_partner_affiliate_url" placeholder="e.g. https://partner-site.com/book?ref=my_affiliate_id">
+                    </div>
                 </div>
 
                 <div style="border: 1px solid var(--border-color); border-radius: 6px; padding: 1rem; margin-bottom: 1rem; background: var(--bg-light);">

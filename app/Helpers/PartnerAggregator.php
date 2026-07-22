@@ -142,6 +142,8 @@ class PartnerAggregator
                         'total_price' => $markedUpTotal,
                         'image_path' => $car['image_path'] ?? '/images/generic_car.jpg',
                         'is_partner' => true,
+                        'is_affiliate' => (bool) ($partner->is_affiliate || !empty($car['is_affiliate'])),
+                        'affiliate_url' => $car['affiliate_url'] ?? ($partner->affiliate_url ?: $partner->api_url),
                         'partner_name' => $partner->name,
                         'partner_id' => $partner->id,
                         'partner_vehicle_id' => $car['vehicle_id'],
