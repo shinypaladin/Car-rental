@@ -1,11 +1,25 @@
 // Frontend Interactions for Car Airport Morocco
 
 document.addEventListener('DOMContentLoaded', function () {
+    initAutoDarkMode();
     initHoverVideos();
     initMobileAutoplayVideos();
     initWhatsAppLinks();
     initLanguageSelector();
 });
+
+/**
+ * Automatic Browser/OS Theme Detection & Switcher
+ */
+function initAutoDarkMode() {
+    if (window.matchMedia) {
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            if (!localStorage.getItem('theme')) {
+                document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+            }
+        });
+    }
+}
 
 /**
  * Desktop Hover-to-Play Looping Video Previews
