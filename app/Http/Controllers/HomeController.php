@@ -118,6 +118,8 @@ class HomeController extends Controller
                 'is_available' => true,
                 'available_count' => 1,
                 'is_partner' => true,
+                'is_affiliate' => $pCar['is_affiliate'] ?? false,
+                'affiliate_url' => $pCar['affiliate_url'] ?? '',
                 'partner_name' => $pCar['partner_name'],
                 'partner_id' => $pCar['partner_id'],
                 'partner_vehicle_id' => $pCar['partner_vehicle_id'],
