@@ -132,62 +132,6 @@
     </form>
 </div>
 
-<!-- Interactive Morocco Map & City Selector -->
-<div style="background: linear-gradient(135deg, #0f1d36 0%, #1e293b 100%); border-radius: 16px; padding: 2rem; margin-bottom: 3rem; color: white; box-shadow: var(--shadow-lg); position: relative; overflow: hidden;">
-    <div style="position: absolute; right: -20px; bottom: -20px; opacity: 0.08; font-size: 15rem; font-weight: 900; user-select: none; pointer-events: none;">🇲🇦</div>
-    
-    <div style="text-align: center; max-width: 700px; margin: 0 auto 2rem;">
-        <span style="color: var(--accent-gold); font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px;">Interactive Airport Selector</span>
-        <h2 style="font-family: var(--font-heading); font-size: 2rem; font-weight: 800; margin: 0.4rem 0 0.6rem; color: white;">Explore Vehicles by Moroccan Airport & City</h2>
-        <p style="font-size: 0.95rem; color: #cbd5e1;">Click any city location below to view available fleet vehicles and instant airport delivery options.</p>
-    </div>
-
-    <!-- City Interactive Cards Grid -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.25rem; position: relative; z-index: 2;">
-        <!-- Marrakech -->
-        <div class="map-city-card active" onclick="selectCityMap('Marrakech Airport (RAK)')" id="city-card-rak" style="background: rgba(255,255,255,0.08); border: 2px solid var(--accent-gold); border-radius: 12px; padding: 1.25rem; cursor: pointer; transition: all 0.3s ease; position: relative;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                <span style="font-size: 1.6rem;">🕌</span>
-                <span style="background: var(--accent-gold); color: #0f1d36; font-size: 0.7rem; font-weight: 800; padding: 0.2rem 0.5rem; border-radius: 4px;">RAK AIRPORT</span>
-            </div>
-            <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700; color: white; margin-bottom: 0.25rem;">Marrakech</h3>
-            <p style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 0.75rem;">Menara Airport (RAK) & Gueliz</p>
-            <div style="font-size: 0.78rem; color: var(--accent-gold); font-weight: 700; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.5rem; display: flex; justify-content: space-between;">
-                <span>⚡ Instant Handover</span>
-                <span>From 350 DH/day</span>
-            </div>
-        </div>
-
-        <!-- Casablanca -->
-        <div class="map-city-card" onclick="selectCityMap('Casablanca Airport (CMN)')" id="city-card-cmn" style="background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 1.25rem; cursor: pointer; transition: all 0.3s ease; position: relative;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                <span style="font-size: 1.6rem;">🏙️</span>
-                <span style="background: rgba(255,255,255,0.15); color: white; font-size: 0.7rem; font-weight: 800; padding: 0.2rem 0.5rem; border-radius: 4px;">CMN AIRPORT</span>
-            </div>
-            <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700; color: white; margin-bottom: 0.25rem;">Casablanca</h3>
-            <p style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 0.75rem;">Mohammed V Airport (CMN)</p>
-            <div style="font-size: 0.78rem; color: var(--accent-gold); font-weight: 700; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.5rem; display: flex; justify-content: space-between;">
-                <span>✈️ Terminal Delivery</span>
-                <span>From 380 DH/day</span>
-            </div>
-        </div>
-
-        <!-- Agadir -->
-        <div class="map-city-card" onclick="selectCityMap('Agadir Airport (AGA)')" id="city-card-aga" style="background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 1.25rem; cursor: pointer; transition: all 0.3s ease; position: relative;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-                <span style="font-size: 1.6rem;">🌊</span>
-                <span style="background: rgba(255,255,255,0.15); color: white; font-size: 0.7rem; font-weight: 800; padding: 0.2rem 0.5rem; border-radius: 4px;">AGA AIRPORT</span>
-            </div>
-            <h3 style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700; color: white; margin-bottom: 0.25rem;">Agadir</h3>
-            <p style="font-size: 0.8rem; color: #cbd5e1; margin-bottom: 0.75rem;">Al Massira Airport (AGA) & Taghazout</p>
-            <div style="font-size: 0.78rem; color: var(--accent-gold); font-weight: 700; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 0.5rem; display: flex; justify-content: space-between;">
-                <span>🏄 Beach & Surf Delivery</span>
-                <span>From 360 DH/day</span>
-            </div>
-        </div>
-    </div>
-</div>
-
 <!-- Featured Cars Grid -->
 <section class="section-container" id="cars">
     <div class="section-header">
