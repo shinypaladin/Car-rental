@@ -336,7 +336,7 @@ footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem
                 <h4>Company</h4>
                 <ul>
                     <li><a href="<?php echo e(route('about', ['locale' => $locale])); ?>">About Us</a></li>
-                    <li><a href="#">Blog</a></li>
+                    <li><a href="<?php echo e(route('blog.index', ['locale' => $locale])); ?>">Blog & Travel Guides</a></li>
                     <li><a href="<?php echo e(url($locale . '#contact-form')); ?>">Contact Us</a></li>
                 </ul>
             </div>
@@ -354,10 +354,9 @@ footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem
             <div class="footer-col">
                 <h4>Popular Locations</h4>
                 <ul>
-                    <li><a href="#">Marrakech Airport</a></li>
-                    <li><a href="#">Casablanca Airport</a></li>
-                    <li><a href="#">Agadir Airport</a></li>
-                    <li><a href="#">Tanger Airport</a></li>
+                    <li><a href="<?php echo e(url($locale . '?pickup_location=Marrakech+Airport+(RAK)#cars')); ?>">Marrakech Airport</a></li>
+                    <li><a href="<?php echo e(url($locale . '?pickup_location=Casablanca+Airport+(CMN)#cars')); ?>">Casablanca Airport</a></li>
+                    <li><a href="<?php echo e(url($locale . '?pickup_location=Agadir+Airport+(AGA)#cars')); ?>">Agadir Airport</a></li>
                 </ul>
             </div>
             

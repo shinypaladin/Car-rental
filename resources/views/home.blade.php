@@ -289,37 +289,9 @@
 <!-- Why Choose Us -->
 <section class="why-choose" id="why-choose">
     <div class="section-container">
-        <h2 style="text-align: center; font-family: var(--font-heading); font-size: 2.2rem; color: var(--primary-blue); margin-bottom: 3rem;">
+        <h2 style="text-align: center; font-family: var(--font-heading); font-size: 2.2rem; color: var(--text-dark); margin-bottom: 3rem;">
             {{ __('messages.why_choose_title') }}
         </h2>
-        
-        <div class="why-choose-grid">
-            <div class="why-card">
-                <div class="why-icon">🚚</div>
-                <h3>{{ __('messages.reason_1_title') }}</h3>
-                <p>{{ __('messages.reason_1_desc') }}</p>
-            </div>
-            
-            <div class="why-card">
-                <div class="why-icon">🛡️</div>
-                <h3>{{ __('messages.reason_2_title') }}</h3>
-                <p>{{ __('messages.reason_2_desc') }}</p>
-            </div>
-            
-            <div class="why-card">
-                <div class="why-icon">🔄</div>
-                <h3>{{ __('messages.reason_3_title') }}</h3>
-                <p>{{ __('messages.reason_3_desc') }}</p>
-            </div>
-            
-            <div class="why-card">
-                <div class="why-icon">📞</div>
-                <h3>{{ __('messages.reason_4_title') }}</h3>
-                <p>{{ __('messages.reason_4_desc') }}</p>
-            </div>
-        </div>
-    </div>
-</section>
         
         <div class="why-choose-grid">
             <div class="why-card">
