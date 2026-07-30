@@ -44,6 +44,23 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
     
+    <?php
+        $googleTracking = \App\Models\Setting::get('google_tracking_code');
+        $hotjarCode     = \App\Models\Setting::get('hotjar_code');
+    ?>
+
+    <?php if($googleTracking): ?>
+        
+        <?php echo $googleTracking; ?>
+
+    <?php endif; ?>
+
+    <?php if($hotjarCode): ?>
+        
+        <?php echo $hotjarCode; ?>
+
+    <?php endif; ?>
+
     <!-- Inline CSS — proxy-safe, zero dependency on asset serving -->
     <style>
 :root{
