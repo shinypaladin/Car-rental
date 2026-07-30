@@ -904,6 +904,121 @@ footer{background-color:var(--primary-blue);color:var(--text-white);padding:5rem
             saveToBookingHistory("<?php echo e(session('last_booking_reference')); ?>", "<?php echo e(session('last_booking_car_name', 'Car Rental')); ?>");
         <?php endif; ?>
     </script>
+
+    <!-- ===== GDPR Cookie Consent Banner ===== -->
+    <div id="cookieConsentBanner" style="
+        display: none;
+        position: fixed;
+        bottom: 1.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 3rem);
+        max-width: 780px;
+        background: var(--bg-white);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+        padding: 1.25rem 1.5rem;
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        animation: cookieSlideUp 0.4s cubic-bezier(0.16,1,0.3,1) both;
+    " role="dialog" aria-label="Cookie consent" aria-live="polite">
+        <!-- Cookie icon -->
+        <span style="font-size: 2rem; flex-shrink: 0;">🍪</span>
+
+        <!-- Text -->
+        <div style="flex: 1; min-width: 200px;">
+            <p style="margin: 0 0 0.2rem 0; font-size: 0.92rem; font-weight: 700; color: var(--text-dark);">We use cookies</p>
+            <p style="margin: 0; font-size: 0.82rem; color: var(--text-muted); line-height: 1.5;">
+                We use essential cookies to make our site work, and optional analytics cookies to understand how you use it.
+                <a href="<?php echo e(route('privacy', ['locale' => app()->getLocale()])); ?>" style="color: var(--accent-gold); font-weight: 600; text-decoration: underline; white-space: nowrap;">Privacy Policy ↗</a>
+            </p>
+        </div>
+
+        <!-- Buttons -->
+        <div style="display: flex; gap: 0.6rem; flex-shrink: 0; flex-wrap: wrap;">
+            <button id="cookieDeclineBtn" onclick="handleCookieConsent('declined')" style="
+                padding: 0.55rem 1.1rem;
+                border: 1.5px solid var(--border-color);
+                border-radius: 8px;
+                background: transparent;
+                color: var(--text-muted);
+                font-size: 0.82rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+                font-family: var(--font-body);
+                white-space: nowrap;
+            " onmouseover="this.style.borderColor='var(--accent-gold)';this.style.color='var(--text-dark)'" onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-muted)'">
+                Decline
+            </button>
+            <button id="cookieAcceptBtn" onclick="handleCookieConsent('accepted')" style="
+                padding: 0.55rem 1.4rem;
+                border: none;
+                border-radius: 8px;
+                background: var(--accent-gold);
+                color: white;
+                font-size: 0.82rem;
+                font-weight: 700;
+                cursor: pointer;
+                transition: background 0.2s;
+                font-family: var(--font-body);
+                white-space: nowrap;
+                box-shadow: 0 2px 8px rgba(197,160,89,0.35);
+            " onmouseover="this.style.background='var(--accent-gold-hover)'" onmouseout="this.style.background='var(--accent-gold)'">
+                Accept All ✓
+            </button>
+        </div>
+    </div>
+
+    <style>
+    @keyframes cookieSlideUp {
+        from { opacity: 0; transform: translateX(-50%) translateY(24px); }
+        to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    @media (max-width: 600px) {
+        #cookieConsentBanner {
+            bottom: 0 !important;
+            left: 0 !important;
+            transform: none !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            border-radius: 16px 16px 0 0 !important;
+            animation: cookieSlideUpMobile 0.4s cubic-bezier(0.16,1,0.3,1) both !important;
+        }
+        @keyframes cookieSlideUpMobile {
+            from { opacity: 0; transform: translateY(100%); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    }
+    </style>
+
+    <script>
+    (function() {
+        var consent = localStorage.getItem('cookie_consent');
+        if (!consent) {
+            var banner = document.getElementById('cookieConsentBanner');
+            if (banner) {
+                banner.style.display = 'flex';
+            }
+        }
+    })();
+
+    function handleCookieConsent(choice) {
+        localStorage.setItem('cookie_consent', choice);
+        var banner = document.getElementById('cookieConsentBanner');
+        if (banner) {
+            banner.style.transition = 'opacity 0.3s, transform 0.3s';
+            banner.style.opacity = '0';
+            banner.style.transform = 'translateX(-50%) translateY(20px)';
+            setTimeout(function() { banner.style.display = 'none'; }, 320);
+        }
+    }
+    </script>
+
 </body>
 </html>
 <?php /**PATH C:\Users\ASUS\Documents\GitHub\Car-rental\resources\views/layouts/app.blade.php ENDPATH**/ ?>

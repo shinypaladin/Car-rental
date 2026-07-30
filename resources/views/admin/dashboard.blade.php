@@ -351,6 +351,7 @@
             <button class="tab-btn" onclick="switchTab('contacts-tab')" id="btn-contacts-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">💬 Contact Messages</button>
             <button class="tab-btn" onclick="switchTab('api-tab')" id="btn-api-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">🔑 API Integration</button>
             <button class="tab-btn" onclick="switchTab('blog-tab')" id="btn-blog-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">📝 Blog & SEO Articles</button>
+            <button class="tab-btn" onclick="switchTab('tracking-tab')" id="btn-tracking-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">📊 Tracking & Analytics</button>
         </div>
 
         <!-- tab: Live Fleet Calendar (Gantt Chart Layout) -->
@@ -2401,6 +2402,148 @@
             </form>
         </div>
     </div>
+
+    <!-- ===== tab 8: Tracking & Analytics ===== -->
+    <div id="tracking-tab" class="tab-content" style="display: none;">
+        <div class="admin-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 5rem;">
+
+            <!-- Google Tracking Card -->
+            <div class="panel">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+                    <span style="font-size:1.8rem;">📊</span>
+                    <div>
+                        <h2 style="margin:0;">Google Analytics / Tag Manager</h2>
+                        <p style="font-size:0.82rem; color:var(--text-muted); margin:0;">Paste the full GTM or GA4 script snippet below. It will be injected inside &lt;head&gt; on every page.</p>
+                    </div>
+                </div>
+
+                <form method="POST" action="/{{ $locale }}/admin/tracking-settings">
+                    @csrf
+                    <input type="hidden" name="hotjar_code" value="{{ $settings->get('hotjar_code', '') }}">
+
+                    <div style="margin-bottom:1rem;">
+                        <label style="display:block; font-size:0.78rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:0.4rem;">Google Tracking Code</label>
+                        <textarea name="google_tracking_code" rows="12" placeholder="<!-- Google tag (gtag.js) -->
+<script async src=&quot;https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX&quot;></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>" style="width:100%; padding:0.85rem; border:1px solid var(--border-color); border-radius:8px; font-family:monospace; font-size:0.8rem; background:var(--bg-light); color:var(--text-dark); resize:vertical; line-height:1.5;">{{ $settings->get('google_tracking_code', '') }}</textarea>
+                        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.4rem;">💡 Supports Google Tag Manager (GTM), Google Analytics 4 (GA4), or any other Google script.</p>
+                    </div>
+
+                    <button type="submit" class="btn-submit" style="width:100%;">💾 Save Google Tracking Code</button>
+                </form>
+
+                @if($settings->get('google_tracking_code'))
+                    <div style="margin-top:1rem; padding:0.75rem 1rem; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:8px; display:flex; align-items:center; gap:0.5rem;">
+                        <span style="color:#16a34a; font-size:1rem;">✅</span>
+                        <span style="font-size:0.82rem; color:#16a34a; font-weight:600;">Google tracking is active on all pages.</span>
+                    </div>
+                @else
+                    <div style="margin-top:1rem; padding:0.75rem 1rem; background:rgba(148,163,184,0.1); border:1px solid var(--border-color); border-radius:8px; display:flex; align-items:center; gap:0.5rem;">
+                        <span style="font-size:1rem;">⬜</span>
+                        <span style="font-size:0.82rem; color:var(--text-muted);">No Google tracking code saved yet.</span>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Hotjar Card -->
+            <div class="panel">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+                    <span style="font-size:1.8rem;">🔥</span>
+                    <div>
+                        <h2 style="margin:0;">Hotjar Heatmaps & Recordings</h2>
+                        <p style="font-size:0.82rem; color:var(--text-muted); margin:0;">Paste the Hotjar tracking script below. It will be injected inside &lt;head&gt; on every page.</p>
+                    </div>
+                </div>
+
+                <form method="POST" action="/{{ $locale }}/admin/tracking-settings">
+                    @csrf
+                    <input type="hidden" name="google_tracking_code" value="{{ $settings->get('google_tracking_code', '') }}">
+
+                    <div style="margin-bottom:1rem;">
+                        <label style="display:block; font-size:0.78rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:0.4rem;">Hotjar Tracking Code</label>
+                        <textarea name="hotjar_code" rows="12" placeholder="<!-- Hotjar Tracking Code -->
+<script>
+    (function(h,o,t,j,a,r){
+        h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+        h._hjSettings={hjid:XXXXXXX,hjsv:6};
+        ...
+    })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+</script>" style="width:100%; padding:0.85rem; border:1px solid var(--border-color); border-radius:8px; font-family:monospace; font-size:0.8rem; background:var(--bg-light); color:var(--text-dark); resize:vertical; line-height:1.5;">{{ $settings->get('hotjar_code', '') }}</textarea>
+                        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.4rem;">💡 Copy the snippet directly from your Hotjar dashboard under Site Settings &rarr; Tracking Code.</p>
+                    </div>
+
+                    <button type="submit" class="btn-submit" style="width:100%;">💾 Save Hotjar Code</button>
+                </form>
+
+                @if($settings->get('hotjar_code'))
+                    <div style="margin-top:1rem; padding:0.75rem 1rem; background:rgba(249,115,22,0.1); border:1px solid rgba(249,115,22,0.3); border-radius:8px; display:flex; align-items:center; gap:0.5rem;">
+                        <span style="color:#ea580c; font-size:1rem;">🔥</span>
+                        <span style="font-size:0.82rem; color:#ea580c; font-weight:600;">Hotjar is active on all pages.</span>
+                    </div>
+                @else
+                    <div style="margin-top:1rem; padding:0.75rem 1rem; background:rgba(148,163,184,0.1); border:1px solid var(--border-color); border-radius:8px; display:flex; align-items:center; gap:0.5rem;">
+                        <span style="font-size:1rem;">⬜</span>
+                        <span style="font-size:0.82rem; color:var(--text-muted);">No Hotjar code saved yet.</span>
+                    </div>
+                @endif
+            </div>
+
+        </div>
+
+        <!-- How-to Guide -->
+        <div class="panel" style="margin-bottom: 5rem; background: linear-gradient(135deg, rgba(15,29,54,0.04) 0%, rgba(197,160,89,0.06) 100%);">
+            <h2 style="margin-bottom:1.5rem;">📋 How to Get Your Tracking Codes</h2>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:2rem;">
+                <div>
+                    <h3 style="font-size:1rem; font-weight:700; color:var(--primary-blue); margin-bottom:0.75rem;">🔵 Google Analytics 4 (GA4)</h3>
+                    <ol style="font-size:0.85rem; color:var(--text-muted); line-height:1.8; padding-left:1.2rem; margin:0;">
+                        <li>Go to <strong>analytics.google.com</strong></li>
+                        <li>Create or select your property</li>
+                        <li>Go to <strong>Admin → Data Streams</strong></li>
+                        <li>Click your web stream → <strong>View tag instructions</strong></li>
+                        <li>Copy the full <code>&lt;script&gt;...&lt;/script&gt;</code> snippet</li>
+                        <li>Paste it in the Google Tracking field above</li>
+                    </ol>
+                </div>
+                <div>
+                    <h3 style="font-size:1rem; font-weight:700; color:var(--primary-blue); margin-bottom:0.75rem;">🔴 Google Tag Manager (GTM)</h3>
+                    <ol style="font-size:0.85rem; color:var(--text-muted); line-height:1.8; padding-left:1.2rem; margin:0;">
+                        <li>Go to <strong>tagmanager.google.com</strong></li>
+                        <li>Create or select your container</li>
+                        <li>Click <strong>Admin → Install Google Tag Manager</strong></li>
+                        <li>Copy the <strong>&lt;head&gt; snippet only</strong></li>
+                        <li>Paste it in the Google Tracking field above</li>
+                    </ol>
+                </div>
+                <div>
+                    <h3 style="font-size:1rem; font-weight:700; color:var(--primary-blue); margin-bottom:0.75rem;">🔥 Hotjar</h3>
+                    <ol style="font-size:0.85rem; color:var(--text-muted); line-height:1.8; padding-left:1.2rem; margin:0;">
+                        <li>Go to <strong>hotjar.com</strong> and log in</li>
+                        <li>Go to <strong>Sites & Organizations</strong></li>
+                        <li>Click <strong>Get Tracking Code</strong> for your site</li>
+                        <li>Copy the full tracking script</li>
+                        <li>Paste it in the Hotjar field above</li>
+                    </ol>
+                </div>
+                <div>
+                    <h3 style="font-size:1rem; font-weight:700; color:var(--primary-blue); margin-bottom:0.75rem;">✅ Google Search Console</h3>
+                    <ol style="font-size:0.85rem; color:var(--text-muted); line-height:1.8; padding-left:1.2rem; margin:0;">
+                        <li>Go to <strong>search.google.com/search-console</strong></li>
+                        <li>Add your property URL</li>
+                        <li>Choose <strong>HTML tag verification</strong></li>
+                        <li>Copy the <code>&lt;meta name="google-site-verification" ...&gt;</code> tag</li>
+                        <li>Paste it in the Google Tracking field above (alongside GA4)</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ===== end tracking-tab ===== -->
 
 </body>
 </html>

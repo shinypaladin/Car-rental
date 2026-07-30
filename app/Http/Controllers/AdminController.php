@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Car;
 use App\Models\Booking;
 use App\Models\SeasonalPrice;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -134,12 +135,15 @@ class AdminController extends Controller
         // Blog Posts
         $blogPosts = \App\Models\BlogPost::orderBy('created_at', 'desc')->get();
 
+        // Tracking & Analytics Settings
+        $settings = \App\Models\Setting::pluck('value', 'key');
+
         return view('admin.dashboard', compact(
             'cars', 'bookings', 'monthBookings', 'seasonalPrices', 'locale',
             'visits24h', 'visits7d', 'visits30d', 'totalMonthlyExpenses',
             'topCountries', 'allVisits', 'expenses', 'automatedExpensesSum',
             'revenueByMonth', 'extras', 'contactRequests', 'apiKeys', 'partnerSites',
-            'blogPosts',
+            'blogPosts', 'settings',
             'selectedMonth', 'selectedMonthData', 'monthOptions', 'filterDate'
         ));
     }
@@ -922,5 +926,17 @@ class AdminController extends Controller
         $post->delete();
 
         return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'Blog post deleted successfully.');
+    }
+
+    /**
+     * Save Tracking & Analytics settings (Google, Hotjar, etc.)
+     */
+    public function storeTrackingSettings(Request $request, $locale = 'en')
+    {
+        Setting::set('google_tracking_code', $request->input('google_tracking_code'));
+        Setting::set('hotjar_code', $request->input('hotjar_code'));
+
+        return redirect()->route('admin.dashboard', ['locale' => $locale])
+            ->with('success', 'Tracking & Analytics settings saved successfully.');
     }
 }

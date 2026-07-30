@@ -104,6 +104,9 @@ Route::group([
         Route::post('/blog-posts', [AdminController::class, 'storeBlogPost'])->name('admin.blog.store');
         Route::post('/blog-posts/update/{id}', [AdminController::class, 'updateBlogPost'])->name('admin.blog.update');
         Route::delete('/blog-posts/{id}', [AdminController::class, 'deleteBlogPost'])->name('admin.blog.delete');
+
+        // Tracking & Analytics Settings
+        Route::post('/tracking-settings', [AdminController::class, 'storeTrackingSettings'])->name('admin.tracking.store');
     });
 
     // Web DB installer (accessible at /en/install-db or /fr/install-db)
