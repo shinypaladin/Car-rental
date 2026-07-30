@@ -711,7 +711,17 @@ class AdminController extends Controller
             'discount_percent' => $request->input('discount_percent', 0.00) ?: 0.00,
         ]);
 
-        return redirect()->route('admin.dashboard', ['locale' => $locale])->with('success', 'API Key generated successfully.');
+        // Flash integration details so dashboard can show the info modal
+        session()->flash('new_api_key', [
+            'name'             => $request->name,
+            'token'            => $token,
+            'discount_percent' => $request->input('discount_percent', 0),
+            'endpoint_cars'    => url('/api/cars'),
+            'endpoint_booking' => url('/api/booking'),
+        ]);
+
+        return redirect()->route('admin.dashboard', ['locale' => $locale])
+            ->with('success', 'API Key generated. Copy your integration details below.');
     }
 
     /**
@@ -938,5 +948,140 @@ class AdminController extends Controller
 
         return redirect()->route('admin.dashboard', ['locale' => $locale])
             ->with('success', 'Tracking & Analytics settings saved successfully.');
+    }
+
+    /**
+     * Export a full site backup as a downloadable ZIP.
+     * Includes: all DB tables as JSON, uploaded images, manifest.
+     */
+    public function exportBackup($locale = 'en')
+    {
+        $timestamp = now()->format('Y-m-d_H-i-s');
+        $zipName   = "cam-backup-{$timestamp}.zip";
+        $zipPath   = storage_path("app/backups/{$zipName}");
+
+        // Ensure directory exists
+        if (!is_dir(storage_path('app/backups'))) {
+            mkdir(storage_path('app/backups'), 0755, true);
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+            return back()->with('error', 'Could not create backup file.');
+        }
+
+        // 1. Dump all database tables as JSON
+        $tables = [
+            'cars', 'bookings', 'seasonal_prices', 'extras',
+            'expenses', 'api_keys', 'partner_sites', 'blog_posts',
+            'contact_requests', 'page_visits', 'settings', 'users',
+        ];
+
+        foreach ($tables as $table) {
+            try {
+                $rows = \DB::table($table)->get();
+                $zip->addFromString("db/{$table}.json", $rows->toJson(JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            } catch (\Exception $e) {
+                // Skip missing tables gracefully
+            }
+        }
+
+        // 2. Include uploaded images from public/images
+        $imagesPath = public_path('images');
+        if (is_dir($imagesPath)) {
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($imagesPath, \RecursiveDirectoryIterator::SKIP_DOTS)
+            );
+            foreach ($iterator as $file) {
+                if ($file->isFile()) {
+                    $relativePath = 'images/' . ltrim(str_replace($imagesPath, '', $file->getPathname()), DIRECTORY_SEPARATOR);
+                    $relativePath = str_replace('\\', '/', $relativePath);
+                    $zip->addFile($file->getPathname(), $relativePath);
+                }
+            }
+        }
+
+        // 3. Add a manifest
+        $manifest = [
+            'version'    => '1.0',
+            'created_at' => now()->toIso8601String(),
+            'site'       => config('app.url'),
+            'tables'     => $tables,
+            'generator'  => 'Car Airport Morocco Admin Backup',
+        ];
+        $zip->addFromString('manifest.json', json_encode($manifest, JSON_PRETTY_PRINT));
+
+        $zip->close();
+
+        return response()->download($zipPath, $zipName, [
+            'Content-Type' => 'application/zip',
+        ])->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Import and restore a backup ZIP file.
+     */
+    public function importBackup(\Illuminate\Http\Request $request, $locale = 'en')
+    {
+        $request->validate([
+            'backup_file' => 'required|file|mimes:zip|max:102400', // max 100MB
+        ]);
+
+        $uploaded = $request->file('backup_file');
+        $tmpPath  = $uploaded->getPathname();
+
+        $zip = new \ZipArchive();
+        if ($zip->open($tmpPath) !== true) {
+            return back()->with('error', 'Could not open the backup ZIP file.');
+        }
+
+        // Validate manifest
+        $manifestJson = $zip->getFromName('manifest.json');
+        if (!$manifestJson) {
+            $zip->close();
+            return back()->with('error', 'Invalid backup file: manifest.json not found.');
+        }
+        $manifest = json_decode($manifestJson, true);
+        if (!isset($manifest['generator']) || $manifest['generator'] !== 'Car Airport Morocco Admin Backup') {
+            $zip->close();
+            return back()->with('error', 'This backup was not created by Car Airport Morocco and cannot be imported.');
+        }
+
+        // 1. Restore DB tables
+        $tables = $manifest['tables'] ?? [];
+        foreach ($tables as $table) {
+            $json = $zip->getFromName("db/{$table}.json");
+            if (!$json) continue;
+            $rows = json_decode($json, true);
+            if (!is_array($rows) || empty($rows)) continue;
+
+            try {
+                \DB::table($table)->truncate();
+                foreach (array_chunk($rows, 100) as $chunk) {
+                    \DB::table($table)->insert($chunk);
+                }
+            } catch (\Exception $e) {
+                // Skip tables that don't exist in current schema
+            }
+        }
+
+        // 2. Restore images
+        $imagesPath = public_path('images');
+        if (!is_dir($imagesPath)) mkdir($imagesPath, 0755, true);
+
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+            if (str_starts_with($name, 'images/') && !str_ends_with($name, '/')) {
+                $targetPath = public_path($name);
+                $dir = dirname($targetPath);
+                if (!is_dir($dir)) mkdir($dir, 0755, true);
+                file_put_contents($targetPath, $zip->getFromIndex($i));
+            }
+        }
+
+        $zip->close();
+
+        return redirect()->route('admin.dashboard', ['locale' => $locale])
+            ->with('success', "Backup from {$manifest['created_at']} restored successfully. All data and images have been imported.");
     }
 }

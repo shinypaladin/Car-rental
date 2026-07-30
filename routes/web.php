@@ -107,6 +107,10 @@ Route::group([
 
         // Tracking & Analytics Settings
         Route::post('/tracking-settings', [AdminController::class, 'storeTrackingSettings'])->name('admin.tracking.store');
+
+        // Backup & Restore
+        Route::get('/backup/export', [AdminController::class, 'exportBackup'])->name('admin.backup.export');
+        Route::post('/backup/import', [AdminController::class, 'importBackup'])->name('admin.backup.import');
     });
 
     // Web DB installer (accessible at /en/install-db or /fr/install-db)

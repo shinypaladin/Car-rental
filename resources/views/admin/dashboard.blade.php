@@ -352,6 +352,7 @@
             <button class="tab-btn" onclick="switchTab('api-tab')" id="btn-api-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">🔑 API Integration</button>
             <button class="tab-btn" onclick="switchTab('blog-tab')" id="btn-blog-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">📝 Blog & SEO Articles</button>
             <button class="tab-btn" onclick="switchTab('tracking-tab')" id="btn-tracking-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">📊 Tracking & Analytics</button>
+            <button class="tab-btn" onclick="switchTab('backup-tab')" id="btn-backup-tab" style="background: none; border: none; padding: 0.8rem 1.5rem; font-weight: 700; cursor: pointer; color: var(--text-dark); border-bottom: 3px solid transparent; font-size: 1rem; opacity: 0.75;">💾 Backup & Restore</button>
         </div>
 
         <!-- tab: Live Fleet Calendar (Gantt Chart Layout) -->
@@ -1175,7 +1176,8 @@
                                 </td>
                                 <td style="color: var(--text-muted);">{{ $key->created_at->format('Y-m-d H:i') }}</td>
                                 <td>
-                                    <button type="button" onclick="openEditApiKeyModal({{ json_encode($key) }})" style="color:var(--primary-blue); background:none; border:none; cursor:pointer; font-weight:600; margin-right:15px;">Edit</button>
+                                    <button type="button" onclick="openApiInfoModal({{ json_encode(['name'=>$key->name,'token'=>$key->key,'discount_percent'=>$key->discount_percent,'endpoint_cars'=>url('/api/cars'),'endpoint_booking'=>url('/api/booking')]) }})" style="color:#16a34a; background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.3); border-radius:6px; padding:0.25rem 0.6rem; cursor:pointer; font-weight:600; font-size:0.78rem; margin-right:8px;">🔑 View Details</button>
+                                    <button type="button" onclick="openEditApiKeyModal({{ json_encode($key) }})" style="color:var(--primary-blue); background:none; border:none; cursor:pointer; font-weight:600; margin-right:8px;">Edit</button>
                                     <form action="/{{ $locale }}/admin/api-keys/{{ $key->id }}" method="POST" onsubmit="return confirm('Revoke this API key? External systems using this key will immediately lose access!')" style="display:inline;">
                                         @csrf
                                         @method('DELETE')
@@ -2544,6 +2546,225 @@
         </div>
     </div>
     <!-- ===== end tracking-tab ===== -->
+
+    <!-- ===== tab 9: Backup & Restore ===== -->
+    <div id="backup-tab" class="tab-content" style="display: none;">
+        <div class="admin-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 5rem;">
+
+            <!-- Export Backup Panel -->
+            <div class="panel">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+                    <span style="font-size:1.8rem;">📦</span>
+                    <div>
+                        <h2 style="margin:0;">Export Site Backup</h2>
+                        <p style="font-size:0.82rem; color:var(--text-muted); margin:0;">Download a complete ZIP package containing your entire database and uploaded vehicle images.</p>
+                    </div>
+                </div>
+
+                <div style="background:var(--bg-light); border:1px solid var(--border-color); border-radius:10px; padding:1.25rem; margin-bottom:1.5rem;">
+                    <h4 style="margin-top:0; font-size:0.88rem; color:var(--primary-blue); margin-bottom:0.75rem;">Includes in Backup ZIP:</h4>
+                    <ul style="font-size:0.82rem; color:var(--text-muted); margin:0; padding-left:1.2rem; line-height:1.8;">
+                        <li>🚗 <strong>Cars Fleet Data & Rates</strong></li>
+                        <li>📅 <strong>All Bookings & Reservations</strong></li>
+                        <li>🔑 <strong>API Access Keys & Partner Integrations</strong></li>
+                        <li>💰 <strong>Expenses & Seasonal Prices</strong></li>
+                        <li>📝 <strong>Blog Posts & Settings</strong></li>
+                        <li>🖼️ <strong>All Uploaded Vehicle Images</strong></li>
+                    </ul>
+                </div>
+
+                <a href="/{{ $locale }}/admin/backup/export" class="btn-submit" style="display:block; text-align:center; text-decoration:none; width:100%; padding:0.85rem; font-size:0.95rem; font-weight:700;">
+                    ⬇️ Download Full Site Backup (.zip)
+                </a>
+            </div>
+
+            <!-- Import Restore Panel -->
+            <div class="panel">
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1rem;">
+                    <span style="font-size:1.8rem;">📥</span>
+                    <div>
+                        <h2 style="margin:0;">Restore / Import Backup</h2>
+                        <p style="font-size:0.82rem; color:var(--text-muted); margin:0;">Upload a previously exported <code>.zip</code> backup file to restore database records and images.</p>
+                    </div>
+                </div>
+
+                <form method="POST" action="/{{ $locale }}/admin/backup/import" enctype="multipart/form-data" onsubmit="return confirm('⚠️ WARNING: Restoring a backup will overwrite existing database records and vehicle images. Are you sure you want to proceed?')">
+                    @csrf
+                    <div style="margin-bottom:1.5rem;">
+                        <label style="display:block; font-size:0.78rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:0.5rem;">Select Backup ZIP File</label>
+                        <input type="file" name="backup_file" accept=".zip" required style="width:100%; padding:0.75rem; border:1px solid var(--border-color); border-radius:8px; background:var(--bg-light); color:var(--text-dark);">
+                    </div>
+
+                    <div style="padding:0.75rem 1rem; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:8px; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.5rem;">
+                        <span style="color:#ef4444; font-size:1.1rem;">⚠️</span>
+                        <span style="font-size:0.8rem; color:#ef4444; font-weight:600;">Caution: Import replaces existing fleet, booking, and API settings data!</span>
+                    </div>
+
+                    <button type="submit" class="btn-submit" style="width:100%; background:#dc2626; color:white;">
+                        ⚡ Restore Backup Now
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+    <!-- ===== end backup-tab ===== -->
+
+    <!-- ===== API Key Info Modal ===== -->
+    <div id="apiInfoModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:99999; justify-content:center; align-items:center; padding:1.5rem; backdrop-filter:blur(4px);">
+        <div style="background:var(--bg-white); border-radius:16px; max-width:640px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3); border:1px solid var(--border-color); position:relative;">
+
+            <!-- Header -->
+            <div style="background:linear-gradient(135deg, #0f1d36 0%, #1b2f52 100%); border-radius:16px 16px 0 0; padding:1.5rem 2rem; display:flex; align-items:center; gap:1rem;">
+                <span style="font-size:2rem;">🔑</span>
+                <div>
+                    <h2 style="color:white; margin:0; font-size:1.2rem;">API Integration Details</h2>
+                    <p style="color:rgba(255,255,255,0.65); margin:0; font-size:0.82rem;">Share these credentials with your partner to enable API access.</p>
+                </div>
+                <button onclick="closeApiInfoModal()" style="position:absolute; top:1rem; right:1rem; background:rgba(255,255,255,0.15); border:none; color:white; width:32px; height:32px; border-radius:50%; font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center;">&times;</button>
+            </div>
+
+            <!-- Body -->
+            <div style="padding:1.75rem 2rem;">
+
+                <!-- Partner name -->
+                <div style="margin-bottom:1.25rem;">
+                    <label style="font-size:0.72rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:0.3rem;">Partner / Agency Name</label>
+                    <div style="font-size:1rem; font-weight:700; color:var(--text-dark);" id="apiInfo_name">—</div>
+                </div>
+
+                <!-- API Key -->
+                <div style="margin-bottom:1.25rem;">
+                    <label style="font-size:0.72rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:0.3rem;">API Access Key</label>
+                    <div style="display:flex; align-items:center; gap:0.6rem;">
+                        <code id="apiInfo_token" style="flex:1; background:var(--bg-light); border:1px solid var(--border-color); border-radius:8px; padding:0.65rem 1rem; font-size:0.82rem; color:var(--text-dark); word-break:break-all;">—</code>
+                        <button onclick="copyApiField('apiInfo_token', this)" style="padding:0.6rem 0.85rem; background:var(--accent-gold); color:white; border:none; border-radius:8px; cursor:pointer; font-size:0.8rem; font-weight:700; white-space:nowrap; flex-shrink:0;">📋 Copy</button>
+                    </div>
+                    <p style="font-size:0.72rem; color:#ef4444; margin:0.4rem 0 0; font-weight:600;">⚠️ This key is only shown once. Save it now.</p>
+                </div>
+
+                <!-- Endpoints -->
+                <div style="margin-bottom:1.25rem;">
+                    <label style="font-size:0.72rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:0.3rem;">Fleet Availability Endpoint</label>
+                    <div style="display:flex; align-items:center; gap:0.6rem;">
+                        <code id="apiInfo_cars" style="flex:1; background:var(--bg-light); border:1px solid var(--border-color); border-radius:8px; padding:0.65rem 1rem; font-size:0.82rem; color:var(--text-dark);">—</code>
+                        <button onclick="copyApiField('apiInfo_cars', this)" style="padding:0.6rem 0.85rem; background:var(--bg-light); color:var(--text-dark); border:1px solid var(--border-color); border-radius:8px; cursor:pointer; font-size:0.8rem; font-weight:700; white-space:nowrap; flex-shrink:0;">📋 Copy</button>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:1.25rem;">
+                    <label style="font-size:0.72rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:0.3rem;">Booking Push Endpoint</label>
+                    <div style="display:flex; align-items:center; gap:0.6rem;">
+                        <code id="apiInfo_booking" style="flex:1; background:var(--bg-light); border:1px solid var(--border-color); border-radius:8px; padding:0.65rem 1rem; font-size:0.82rem; color:var(--text-dark);">—</code>
+                        <button onclick="copyApiField('apiInfo_booking', this)" style="padding:0.6rem 0.85rem; background:var(--bg-light); color:var(--text-dark); border:1px solid var(--border-color); border-radius:8px; cursor:pointer; font-size:0.8rem; font-weight:700; white-space:nowrap; flex-shrink:0;">📋 Copy</button>
+                    </div>
+                </div>
+
+                <!-- Discount -->
+                <div style="margin-bottom:1.5rem;">
+                    <label style="font-size:0.72rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:0.3rem;">Negotiated Discount</label>
+                    <div id="apiInfo_discount" style="font-size:1rem; font-weight:700; color:var(--accent-gold);">—</div>
+                </div>
+
+                <!-- Example cURL -->
+                <div style="margin-bottom:1.5rem;">
+                    <label style="font-size:0.72rem; font-weight:700; text-transform:uppercase; color:var(--text-muted); display:block; margin-bottom:0.5rem;">Example Request (cURL)</label>
+                    <pre id="apiInfo_curl" style="background:#0f1d36; color:#e2e8f0; border-radius:8px; padding:1rem; font-size:0.75rem; overflow-x:auto; line-height:1.6; margin:0;">—</pre>
+                    <button onclick="copyApiField('apiInfo_curl', this)" style="margin-top:0.5rem; padding:0.45rem 0.9rem; background:var(--bg-light); color:var(--text-dark); border:1px solid var(--border-color); border-radius:6px; cursor:pointer; font-size:0.78rem; font-weight:600;">📋 Copy cURL</button>
+                </div>
+
+                <!-- Download -->
+                <div style="display:flex; gap:0.75rem;">
+                    <button onclick="downloadApiDetails()" style="flex:1; padding:0.75rem; background:var(--accent-gold); color:white; border:none; border-radius:10px; cursor:pointer; font-weight:700; font-size:0.9rem;">⬇️ Download as .txt</button>
+                    <button onclick="closeApiInfoModal()" style="flex:1; padding:0.75rem; background:var(--bg-light); color:var(--text-dark); border:1px solid var(--border-color); border-radius:10px; cursor:pointer; font-weight:600; font-size:0.9rem;">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    let _currentApiInfo = {};
+
+    function openApiInfoModal(data) {
+        _currentApiInfo = data;
+        document.getElementById('apiInfo_name').textContent    = data.name || '—';
+        document.getElementById('apiInfo_token').textContent   = data.token || '—';
+        document.getElementById('apiInfo_cars').textContent    = data.endpoint_cars || '—';
+        document.getElementById('apiInfo_booking').textContent = data.endpoint_booking || '—';
+        document.getElementById('apiInfo_discount').textContent = (data.discount_percent > 0)
+            ? data.discount_percent + '% discount applied to all rates'
+            : 'No discount (full rate)';
+        document.getElementById('apiInfo_curl').textContent =
+`# Fetch available cars
+curl -X GET "${data.endpoint_cars}" \\
+  -H "X-API-KEY: ${data.token}" \\
+  -H "Accept: application/json"
+
+# Push a booking
+curl -X POST "${data.endpoint_booking}" \\
+  -H "X-API-KEY: ${data.token}" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "car_id": 1,
+    "customer_name": "John Doe",
+    "customer_email": "john@example.com",
+    "customer_phone": "+33600000000",
+    "pickup_datetime": "2025-08-01 10:00:00",
+    "return_datetime": "2025-08-05 10:00:00",
+    "pickup_location": "Marrakech Airport"
+  }'`;
+        const modal = document.getElementById('apiInfoModal');
+        modal.style.display = 'flex';
+        // Switch to API tab automatically
+        if (typeof switchTab === 'function') switchTab('api-tab');
+    }
+
+    function closeApiInfoModal() {
+        document.getElementById('apiInfoModal').style.display = 'none';
+    }
+
+    function copyApiField(elementId, btn) {
+        const text = document.getElementById(elementId).textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            const orig = btn.textContent;
+            btn.textContent = '✅ Copied!';
+            setTimeout(() => btn.textContent = orig, 2000);
+        });
+    }
+
+    function downloadApiDetails() {
+        const d = _currentApiInfo;
+        const content = [
+            'Car Airport Morocco — API Integration Details',
+            '=============================================',
+            '',
+            'Partner Name    : ' + d.name,
+            'API Access Key  : ' + d.token,
+            'Discount        : ' + (d.discount_percent > 0 ? d.discount_percent + '%' : 'None'),
+            '',
+            'Endpoints:',
+            '  Fleet (GET)   : ' + d.endpoint_cars,
+            '  Booking (POST): ' + d.endpoint_booking,
+            '',
+            'Authentication:',
+            '  Add header: X-API-KEY: ' + d.token,
+            '',
+            'Generated: ' + new Date().toISOString(),
+        ].join('\n');
+        const blob = new Blob([content], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'api-integration-' + d.name.toLowerCase().replace(/\s+/g, '-') + '.txt';
+        a.click();
+    }
+
+    // Auto-open modal if a new API key was just generated
+    @if(session('new_api_key'))
+        document.addEventListener('DOMContentLoaded', function() {
+            openApiInfoModal({{ json_encode(session('new_api_key')) }});
+        });
+    @endif
+    </script>
 
 </body>
 </html>
